@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/web_modules/student_management/controllers/student_management_controller.dart';
 import 'package:blooket/app/data/model/student_model.dart';
 
@@ -86,7 +87,59 @@ class StudentManagementView extends GetView<StudentManagementController> {
 
   Widget _buildAddButton() {
     return ElevatedButton.icon(
-      onPressed: controller.showAddStudentDialog,
+      onPressed: () {
+        // Show Add Student dialog in the view and call controller.addStudent
+        final nameCtrl = TextEditingController();
+        final userCtrl = TextEditingController();
+        String selectedRole = 'student';
+
+        Get.defaultDialog(
+          title: "CẤP TÀI KHOẢN MỚI",
+          titleStyle: const TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900),
+          radius: 20,
+          contentPadding: const EdgeInsets.all(20),
+          content: Column(
+            children: [
+              TextField(controller: nameCtrl, decoration: InputDecoration(labelText: "Họ và tên", prefixIcon: const Icon(Icons.person), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+              const SizedBox(height: 16),
+              TextField(controller: userCtrl, decoration: InputDecoration(labelText: "Username", prefixIcon: const Icon(Icons.alternate_email), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                decoration: InputDecoration(labelText: "Vai trò", prefixIcon: const Icon(Icons.security, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50),
+                items: const [
+                  DropdownMenuItem(value: 'student', child: Text("Học viên")),
+                  DropdownMenuItem(value: 'admin', child: Text("Quản trị viên")),
+                ],
+                onChanged: (val) {
+                  if (val != null) selectedRole = val;
+                },
+              ),
+              const SizedBox(height: 12),
+              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: const Row(children: [Icon(Icons.info_outline, color: Colors.orange, size: 20), SizedBox(width: 8), Expanded(child: Text("Mật khẩu mặc định: 123456", style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)))],)),
+            ],
+          ),
+          confirm: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF88D8B0), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              onPressed: () async {
+                if (nameCtrl.text.isEmpty || userCtrl.text.isEmpty) {
+                  controller.showWarning("Vui lòng nhập đầy đủ thông tin");
+                  return;
+                }
+
+                Get.back();
+                await Future.delayed(const Duration(milliseconds: 300));
+
+                await controller.addStudent(fullName: nameCtrl.text, username: userCtrl.text, role: selectedRole, password: '123456');
+              },
+              child: const Text("TẠO TÀI KHOẢN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          cancel: TextButton(onPressed: () => Get.back(), child: const Text("Hủy", style: TextStyle(color: Colors.grey))),
+        );
+      },
       icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
       label: const Text('CẤP TÀI KHOẢN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       style: ElevatedButton.styleFrom(
@@ -153,7 +206,20 @@ class StudentManagementView extends GetView<StudentManagementController> {
             IconButton(
               tooltip: "Reset Password",
               icon: const Icon(Icons.lock_reset, color: Colors.orangeAccent),
-              onPressed: () => controller.resetPassword(student.id),
+              onPressed: () {
+                AppDialogs.showConfirm(
+                  title: "Reset Mật khẩu?",
+                  middleText: "Mật khẩu sẽ quay về: 123456",
+                  textConfirm: "Đồng ý",
+                  textCancel: "Hủy",
+                  confirmTextColor: Colors.white,
+                  buttonColor: Colors.orange,
+                  onConfirm: () async {
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    await controller.resetPassword(student.id);
+                  },
+                );
+              },
             ),
             IconButton(
               tooltip: student.isActive ? "Khóa" : "Mở khóa",
@@ -164,7 +230,20 @@ class StudentManagementView extends GetView<StudentManagementController> {
              IconButton(
               tooltip: "Xóa tài khoản",
               icon: const Icon(Icons.delete_outline, color: Colors.grey),
-              onPressed: () => controller.deleteStudent(student.id),
+              onPressed: () {
+                AppDialogs.showConfirm(
+                  title: "Xóa tài khoản?",
+                  middleText: "Hành động này không thể hoàn tác.",
+                  textConfirm: "Xóa vĩnh viễn",
+                  textCancel: "Hủy",
+                  confirmTextColor: Colors.white,
+                  buttonColor: Colors.red,
+                  onConfirm: () async {
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    await controller.deleteStudent(student.id);
+                  },
+                );
+              },
             ),
           ],
         )),

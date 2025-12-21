@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/web_modules/question_management/controller/question_management_detail_controller.dart';
+import 'package:blooket/app/web_modules/question_management/widgets/question_dialog.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/data/model/question_model.dart';
 
 class QuestionManagementDetailView extends GetView<QuestionManagementDetailController> {
@@ -9,7 +11,7 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Scaffold(
       backgroundColor: controller.bgColor,
       appBar: const CustomAppBar(title: 'Chi Tiết Bộ Đề'),
       body: SingleChildScrollView(
@@ -83,7 +85,19 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
 
   Widget _buildAddButton() {
     return ElevatedButton.icon(
-      onPressed: controller.openAddQuestionDialog,
+      onPressed: () {
+        Get.dialog(
+          QuestionDialog(
+            setId: controller.setId,
+            onSave: (newQuestion) async {
+              Get.back();
+              await Future.delayed(const Duration(milliseconds: 300));
+              await controller.addQuestion(newQuestion);
+            },
+          ),
+          barrierDismissible: false,
+        );
+      },
       icon: const Icon(Icons.add_circle, color: Colors.white),
       label: const Text('THÊM CÂU HỎI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       style: ElevatedButton.styleFrom(
@@ -157,12 +171,39 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blueAccent),
                 tooltip: "Sửa",
-                onPressed: () => controller.openEditQuestionDialog(q),
+                onPressed: () {
+                  Get.dialog(
+                    QuestionDialog(
+                      setId: controller.setId,
+                      initialData: q,
+                      onSave: (updatedQuestion) async {
+                        Get.back();
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        await controller.updateQuestion(updatedQuestion);
+                      },
+                    ),
+                    barrierDismissible: false,
+                  );
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                 tooltip: "Xóa",
-                onPressed: () => controller.deleteQuestion(q.id),
+                onPressed: () {
+                  AppDialogs.showConfirm(
+                    title: "Xóa câu hỏi?",
+                    titleStyle: TextStyle(color: controller.primaryColor, fontWeight: FontWeight.bold),
+                    middleText: "Hành động này không thể hoàn tác.",
+                    textConfirm: "Xóa",
+                    textCancel: "Hủy",
+                    confirmTextColor: Colors.white,
+                    buttonColor: Colors.redAccent,
+                    onConfirm: () async {
+                      await Future.delayed(const Duration(milliseconds: 300));
+                      await controller.deleteQuestion(q.id);
+                    },
+                  );
+                },
               ),
             ],
           )
@@ -172,11 +213,9 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
   }
 
   String _getTypeName(QuestionType type) {
-    switch (type) {
-      case QuestionType.multipleChoice: return "TRẮC NGHIỆM";
-      case QuestionType.rearrange: return "SẮP XẾP CÂU";
-      case QuestionType.translate: return "DỊCH CÂU";
-      default: return "";
-    }
+    if (type == QuestionType.multipleChoice) return "TRẮC NGHIỆM";
+    if (type == QuestionType.rearrange) return "SẮP XẾP CÂU";
+    if (type == QuestionType.translate) return "DỊCH CÂU";
+    return "";
   }
 }

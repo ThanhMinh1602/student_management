@@ -2,6 +2,7 @@ import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/web_modules/class_management/controller/class_management_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 
 class ClassManagementDetailView extends GetView<ClassManagementDetailController> {
   const ClassManagementDetailView({super.key});
@@ -99,7 +100,21 @@ class ClassManagementDetailView extends GetView<ClassManagementDetailController>
                  IconButton(
                    icon: const Icon(Icons.person_remove_rounded, color: Colors.redAccent),
                    tooltip: "Xóa khỏi lớp",
-                   onPressed: () => controller.removeStudentFromClass(student.id),
+                   onPressed: () {
+                     AppDialogs.showConfirm(
+                       title: "Xóa khỏi lớp?",
+                       middleText: "Học viên sẽ bị xóa khỏi danh sách lớp này (Tài khoản vẫn tồn tại).",
+                       textConfirm: "Xóa",
+                       textCancel: "Hủy",
+                       confirmTextColor: Colors.white,
+                       buttonColor: Colors.redAccent,
+                       onConfirm: () async {
+                         // Wait for dialog to dismiss
+                         await Future.delayed(const Duration(milliseconds: 300));
+                         await controller.removeStudentFromClass(student.id);
+                       },
+                     );
+                   }
                  )
               ],
             )),

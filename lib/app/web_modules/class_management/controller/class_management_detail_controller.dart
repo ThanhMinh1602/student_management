@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart'; // Kế thừa BaseController để có loading/snackbar xịn
-import 'package:blooket/app/core/utils/dialogs.dart';
+// Controller must not import UI/dialog helpers; views handle confirmations.
 import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 
@@ -49,8 +49,8 @@ class ClassManagementDetailController extends BaseController {
   }
 
   // Thêm học viên vào lớp
-  void addStudentToClass(String studentId) async {
-    Get.back(); // Đóng dialog chọn
+  Future<bool> addStudentToClass(String studentId) async {
+    // Logic-only: view should close any dialog before calling this.
     showLoading();
     bool success = await _studentService.assignStudentToClass(
       studentId,
@@ -63,25 +63,17 @@ class ClassManagementDetailController extends BaseController {
     } else {
       showError("Thất bại, vui lòng thử lại");
     }
+    return success;
   }
 
   // Xóa học viên khỏi lớp
-  void removeStudentFromClass(String studentId) async {
-    AppDialogs.showConfirm(
-      title: "Xóa khỏi lớp?",
-      middleText:
-          "Học viên sẽ bị xóa khỏi danh sách lớp này (Tài khoản vẫn tồn tại).",
-      textConfirm: "Xóa",
-      textCancel: "Hủy",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.redAccent,
-      onConfirm: () async {
-        showLoading();
-        bool success = await _studentService.removeStudentFromClass(studentId);
-        hideLoading();
-        if (success) showSuccess("Đã xóa khỏi lớp");
-      },
-    );
+  Future<bool> removeStudentFromClass(String studentId) async {
+    // Controller performs deletion; view must ask for confirmation.
+    showLoading();
+    bool success = await _studentService.removeStudentFromClass(studentId);
+    hideLoading();
+    if (success) showSuccess("Đã xóa khỏi lớp");
+    return success;
   }
 
   // Các chức năng phụ

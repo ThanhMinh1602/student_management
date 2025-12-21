@@ -1,6 +1,5 @@
 import 'package:blooket/app/core/base/base_controller.dart';
-import 'package:blooket/app/core/utils/dialogs.dart';
-import 'package:blooket/app/web_modules/question_management/widgets/question_dialog.dart';
+// Dialogs and QuestionDialog widget belong in Views; controller only exposes logic.
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/data/model/question_model.dart'; // Chứa Enum QuestionType
@@ -35,56 +34,29 @@ class QuestionManagementDetailController extends BaseController {
 
   // --- CRUD ACTION ---
 // --- DELETE QUESTION ---
-  void deleteQuestion(String questionId) {
-    AppDialogs.showConfirm(
-      title: "Xóa câu hỏi?",
-      titleStyle: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-      middleText: "Hành động này không thể hoàn tác.",
-      textConfirm: "Xóa",
-      textCancel: "Hủy",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.redAccent,
-      onConfirm: () async {
-        showLoading();
-        bool success = await _service.deleteQuestion(questionId, setId);
-        hideLoading();
-        if (success) showSuccess("Đã xóa câu hỏi");
-      },
-    );
+  Future<bool> deleteQuestion(String questionId) async {
+    showLoading();
+    bool success = await _service.deleteQuestion(questionId, setId);
+    hideLoading();
+    if (success) showSuccess("Đã xóa câu hỏi");
+    return success;
   }
 
   // --- OPEN ADD DIALOG ---
-  void openAddQuestionDialog() {
-    Get.dialog(
-      QuestionDialog(
-        setId: setId,
-        onSave: (newQuestion) async {
-          Get.back();
-          showLoading();
-          bool success = await _service.addQuestion(newQuestion);
-          hideLoading();
-          if (success) showSuccess("Thêm câu hỏi thành công");
-        },
-      ),
-      barrierDismissible: false,
-    );
+  // Views should open QuestionDialog and call these logic methods.
+  Future<bool> addQuestion(QuestionModel newQuestion) async {
+    showLoading();
+    bool success = await _service.addQuestion(newQuestion);
+    hideLoading();
+    if (success) showSuccess("Thêm câu hỏi thành công");
+    return success;
   }
 
-  // --- OPEN EDIT DIALOG ---
-  void openEditQuestionDialog(QuestionModel existingQuestion) {
-    Get.dialog(
-      QuestionDialog(
-        setId: setId,
-        initialData: existingQuestion, // Truyền dữ liệu cũ vào để sửa
-        onSave: (updatedQuestion) async {
-          Get.back();
-          showLoading();
-          bool success = await _service.updateQuestion(updatedQuestion);
-          hideLoading();
-          if (success) showSuccess("Cập nhật câu hỏi thành công");
-        },
-      ),
-      barrierDismissible: false,
-    );
+  Future<bool> updateQuestion(QuestionModel updatedQuestion) async {
+    showLoading();
+    bool success = await _service.updateQuestion(updatedQuestion);
+    hideLoading();
+    if (success) showSuccess("Cập nhật câu hỏi thành công");
+    return success;
   }
 }

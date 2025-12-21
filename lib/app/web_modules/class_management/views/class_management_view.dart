@@ -2,6 +2,7 @@ import 'package:blooket/app/web_modules/class_management/controller/class_manage
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/class_card.dart'; // Import thẻ lớp mới
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 
 class ClassManagementView extends GetView<ClassManagementController> {
@@ -60,8 +61,53 @@ class ClassManagementView extends GetView<ClassManagementController> {
                         schedule: item.schedule,
                         studentCount: count, 
                         onEnterClass: () => controller.enterClass(item.id),
-                        onEdit: () => controller.editClass(item.id),
-                        onDelete: () => controller.deleteClass(item.id),
+                        onEdit: () {
+                          // Show edit dialog and call controller.updateClass
+                          final nameCtrl = TextEditingController(text: item.className);
+                          final subjectCtrl = TextEditingController(text: item.subject);
+                          final scheduleCtrl = TextEditingController(text: item.schedule);
+
+                          Get.defaultDialog(
+                            title: "CHỈNH SỬA LỚP",
+                            titleStyle: const TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900),
+                            contentPadding: const EdgeInsets.all(20),
+                            radius: 20,
+                            content: Column(children: [
+                              TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Tên lớp (VD: Tiếng Trung K15)', prefixIcon: const Icon(Icons.class_, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+                              const SizedBox(height: 16),
+                              TextField(controller: subjectCtrl, decoration: InputDecoration(labelText: 'Môn học (VD: HSK 3)', prefixIcon: const Icon(Icons.book, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+                              const SizedBox(height: 16),
+                              TextField(controller: scheduleCtrl, decoration: InputDecoration(labelText: 'Lịch học (VD: 2-4-6 19:30)', prefixIcon: const Icon(Icons.access_time, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+                            ]),
+                            confirm: SizedBox(width: double.infinity, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF88D8B0), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () async {
+                              if (nameCtrl.text.isEmpty) { controller.showWarning("Vui lòng nhập tên lớp học"); return; }
+                              Get.back();
+                              await Future.delayed(const Duration(milliseconds: 300));
+                              await controller.updateClass(id: item.id, className: nameCtrl.text.trim(), subject: subjectCtrl.text.trim(), schedule: scheduleCtrl.text.trim());
+                            }, child: const Text('LƯU THAY ĐỔI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
+                            cancel: TextButton(onPressed: () => Get.back(), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+                          );
+                        },
+                        onDelete: () {
+                          AppDialogs.showConfirm(
+                            title: "Xác nhận xóa",
+                            titleStyle: const TextStyle(
+                              color: Color(0xFF909CC2),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            middleText: "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
+                            textConfirm: "Xóa ngay",
+                            textCancel: "Hủy",
+                            confirmTextColor: Colors.white,
+                            buttonColor: Colors.redAccent,
+                            cancelTextColor: Colors.grey,
+                            onConfirm: () async {
+                              // Wait a bit to ensure dialog has closed before showing loading
+                              await Future.delayed(const Duration(milliseconds: 300));
+                              await controller.deleteClass(item.id);
+                            },
+                          );
+                        },
                       );
                     },
                   );
@@ -78,7 +124,32 @@ class ClassManagementView extends GetView<ClassManagementController> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: controller.createClass,
+        onTap: () {
+          final nameCtrl = TextEditingController();
+          final subjectCtrl = TextEditingController();
+          final scheduleCtrl = TextEditingController();
+
+          Get.defaultDialog(
+            title: "THÊM LỚP MỚI",
+            titleStyle: const TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900),
+            contentPadding: const EdgeInsets.all(20),
+            radius: 20,
+            content: Column(children: [
+              TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Tên lớp (VD: Tiếng Trung K15)', prefixIcon: const Icon(Icons.class_, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+              const SizedBox(height: 16),
+              TextField(controller: subjectCtrl, decoration: InputDecoration(labelText: 'Môn học (VD: HSK 3)', prefixIcon: const Icon(Icons.book, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+              const SizedBox(height: 16),
+              TextField(controller: scheduleCtrl, decoration: InputDecoration(labelText: 'Lịch học (VD: 2-4-6 19:30)', prefixIcon: const Icon(Icons.access_time, color: Color(0xFF909CC2)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: Colors.grey.shade50)),
+            ]),
+            confirm: SizedBox(width: double.infinity, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF88D8B0), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), onPressed: () async {
+              if (nameCtrl.text.isEmpty) { controller.showWarning("Vui lòng nhập tên lớp học"); return; }
+              Get.back();
+              await Future.delayed(const Duration(milliseconds: 300));
+              await controller.createClass(className: nameCtrl.text.trim(), subject: subjectCtrl.text.trim(), schedule: scheduleCtrl.text.trim());
+            }, child: const Text('TẠO LỚP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
+            cancel: TextButton(onPressed: () => Get.back(), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+          );
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           width: 220, // To hơn xíu để chứa chữ dài hơn
