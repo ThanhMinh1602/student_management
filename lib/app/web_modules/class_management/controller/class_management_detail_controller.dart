@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart'; // Kế thừa BaseController để có loading/snackbar xịn
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 
@@ -66,7 +67,7 @@ class ClassManagementDetailController extends BaseController {
 
   // Xóa học viên khỏi lớp
   void removeStudentFromClass(String studentId) async {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Xóa khỏi lớp?",
       middleText:
           "Học viên sẽ bị xóa khỏi danh sách lớp này (Tài khoản vẫn tồn tại).",
@@ -75,7 +76,6 @@ class ClassManagementDetailController extends BaseController {
       confirmTextColor: Colors.white,
       buttonColor: Colors.redAccent,
       onConfirm: () async {
-        Get.back();
         showLoading();
         bool success = await _studentService.removeStudentFromClass(studentId);
         hideLoading();

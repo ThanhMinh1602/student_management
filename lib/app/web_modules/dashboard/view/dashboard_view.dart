@@ -5,6 +5,7 @@ import 'package:blooket/app/web_modules/auth/controller/auth_controller.dart';
 import 'package:blooket/app/web_modules/dashboard/widgets/dashboard_item_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -25,17 +26,9 @@ class DashboardView extends StatelessWidget {
             userName: name,
             avatarUrl: avatar,
             onAvatarTap: () {
-              // Hiện dialog xác nhận logout
-              Get.defaultDialog(
-                title: 'Đăng xuất',
-                middleText: 'Bạn có chắc muốn đăng xuất?',
-                textConfirm: 'Đồng ý',
-                textCancel: 'Hủy',
-                onConfirm: () {
-                  Get.back();
-                  authController.logout();
-                },
-              );
+              AppDialogs.showLogoutConfirm(onConfirm: () {
+                authController.logout();
+              });
             },
           );
         }),

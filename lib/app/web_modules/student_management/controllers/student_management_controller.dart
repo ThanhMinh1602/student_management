@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 
@@ -144,7 +145,7 @@ class StudentManagementController extends BaseController {
   }
 
   void resetPassword(String id) {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Reset Mật khẩu?",
       middleText: "Mật khẩu sẽ quay về: 123456",
       textConfirm: "Đồng ý",
@@ -152,7 +153,6 @@ class StudentManagementController extends BaseController {
       confirmTextColor: Colors.white,
       buttonColor: Colors.orange,
       onConfirm: () async {
-        Get.back();
         await Future.delayed(const Duration(milliseconds: 300));
 
         showLoading();
@@ -165,7 +165,7 @@ class StudentManagementController extends BaseController {
   }
 
   void deleteStudent(String id) {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Xóa tài khoản?",
       middleText: "Hành động này không thể hoàn tác.",
       textConfirm: "Xóa vĩnh viễn",
@@ -173,7 +173,6 @@ class StudentManagementController extends BaseController {
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
       onConfirm: () async {
-        Get.back();
         await Future.delayed(const Duration(milliseconds: 300));
 
         showLoading();

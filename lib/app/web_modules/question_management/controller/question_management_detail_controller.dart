@@ -1,4 +1,5 @@
 import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/web_modules/question_management/widgets/question_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -35,7 +36,7 @@ class QuestionManagementDetailController extends BaseController {
   // --- CRUD ACTION ---
 // --- DELETE QUESTION ---
   void deleteQuestion(String questionId) {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Xóa câu hỏi?",
       titleStyle: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
       middleText: "Hành động này không thể hoàn tác.",
@@ -44,12 +45,11 @@ class QuestionManagementDetailController extends BaseController {
       confirmTextColor: Colors.white,
       buttonColor: Colors.redAccent,
       onConfirm: () async {
-        Get.back();
         showLoading();
         bool success = await _service.deleteQuestion(questionId, setId);
         hideLoading();
         if (success) showSuccess("Đã xóa câu hỏi");
-      }
+      },
     );
   }
 

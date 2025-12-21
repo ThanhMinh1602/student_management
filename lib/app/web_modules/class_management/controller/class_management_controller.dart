@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/data/model/class_model.dart';
 import 'package:blooket/app/data/service/class_service.dart';
-import 'package:blooket/app/routes/app_routes.dart';
+// routes import removed (unused here)
 
 class ClassManagementController extends BaseController {
   // Dependency Injection thông qua constructor hoặc Get.find() đều được
@@ -45,22 +46,19 @@ Stream<int> getClassStudentCount(String classId) {
   }
   // --- XÓA LỚP ---
   void deleteClass(String id) {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Xác nhận xóa",
       titleStyle: const TextStyle(
         color: Color(0xFF909CC2),
         fontWeight: FontWeight.bold,
       ),
-      middleText:
-          "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
+      middleText: "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
       textConfirm: "Xóa ngay",
       textCancel: "Hủy",
       confirmTextColor: Colors.white,
       buttonColor: Colors.redAccent,
       cancelTextColor: Colors.grey,
       onConfirm: () async {
-        Get.back(); // 1. Đóng Dialog trước
-
         // 🔥 FIX: Đợi 300ms để Dialog đóng hẳn rồi mới hiện loading
         await Future.delayed(const Duration(milliseconds: 300));
 

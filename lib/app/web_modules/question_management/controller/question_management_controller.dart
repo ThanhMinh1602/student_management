@@ -3,6 +3,7 @@ import 'package:blooket/app/data/service/class_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:blooket/app/core/utils/dialogs.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart';
 import 'package:blooket/app/data/model/assignment_model.dart';
@@ -40,7 +41,7 @@ class QuestionManagementController extends BaseController {
   }
 
   void deleteSet(String id) {
-    Get.defaultDialog(
+    AppDialogs.showConfirm(
       title: "Xóa bộ đề?",
       titleStyle: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
       middleText: "Hành động này sẽ xóa vĩnh viễn bộ câu hỏi này.",
@@ -50,7 +51,6 @@ class QuestionManagementController extends BaseController {
       buttonColor: Colors.redAccent,
       cancelTextColor: Colors.grey,
       onConfirm: () async {
-        Get.back(); // Đóng dialog confirm
         await Future.delayed(const Duration(milliseconds: 300)); // Fix loading
 
         showLoading();

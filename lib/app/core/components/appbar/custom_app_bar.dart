@@ -1,6 +1,5 @@
-import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:blooket/app/core/components/appbar/app_header.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -24,36 +23,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: titleColor ?? AppColor.white,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-      centerTitle: centerTitle,
-      backgroundColor: backgroundColor ?? AppColor.pink,
-      elevation: 0, 
-      
-      // Xử lý nút Leading (Nút bên trái)
-      leading: showBackButton
-          ? IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded, // Icon back đẹp hơn mặc định
-                color: titleColor ?? AppColor.white,
-                size: 20,
-              ),
-              // Nếu không truyền hàm xử lý riêng thì mặc định là Get.back()
-              onPressed: onLeadingPressed ?? () => Get.back(),
-            )
-          : null, // Nếu showBackButton = false, để null cho Flutter tự xử lý (ví dụ nút Drawer)
-          
+    // Delegate to shared AppHeader to keep header logic in one place.
+    return AppHeader(
+      title: title,
+      showBackButton: showBackButton,
       actions: actions,
+      backgroundColor: backgroundColor,
+      titleColor: titleColor,
+      onLeadingPressed: onLeadingPressed,
     );
   }
 
   @override
-  // Bắt buộc phải override getter này để Scaffold biết chiều cao của AppBar
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

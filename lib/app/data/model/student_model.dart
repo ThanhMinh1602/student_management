@@ -37,4 +37,33 @@ class StudentModel {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
+
+  // Map serialization for local storage (GetStorage)
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'username': username,
+      'password': password,
+      'role': role,
+      'classId': classId,
+      'avgScore': avgScore,
+      'isActive': isActive,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory StudentModel.fromMap(Map<String, dynamic> map) {
+    return StudentModel(
+      id: map['id'] ?? '',
+      fullName: map['fullName'] ?? '',
+      username: map['username'] ?? '',
+      password: map['password'] ?? '',
+      role: map['role'] ?? 'student',
+      classId: map['classId'] ?? '',
+      avgScore: (map['avgScore'] ?? 0).toDouble(),
+      isActive: map['isActive'] ?? true,
+      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+    );
+  }
 }

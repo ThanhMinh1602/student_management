@@ -3,6 +3,7 @@ import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/auth_service.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AuthController extends BaseController {
   final AuthService _authService;
@@ -11,6 +12,25 @@ class AuthController extends BaseController {
   final Rxn<StudentModel> currentUser = Rxn<StudentModel>();
 
   AuthController(this._authService); // Khởi tạo Service
+
+  final GetStorage _storage = GetStorage();
+
+  static const String _storageKey = 'currentUser';
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Restore session if any
+    final data = _storage.read(_storageKey);
+    if (data != null && data is Map<String, dynamic>) {
+      try {
+        currentUser.value = StudentModel.fromMap(Map<String, dynamic>.from(data));
+      } catch (_) {
+        // ignore: avoid_print
+        print('Failed to restore user session');
+      }
+    }
+  }
 
   bool get isLoggedIn => currentUser.value != null;
 
@@ -46,6 +66,10 @@ class AuthController extends BaseController {
       if (user.role == 'admin') {
         // Lưu user hiện tại để dùng ở các màn hình khác
         currentUser.value = user;
+        // Persist to storage
+        try {
+          _storage.write(_storageKey, user.toMap());
+        } catch (_) {}
         showSuccess('Xin chào Admin ${user.fullName}');
         Get.offAllNamed(AppRoutes.DASHBOARD);
       } else {
@@ -62,6 +86,10 @@ class AuthController extends BaseController {
   // Hàm đăng xuất: xóa user và quay về màn hình login
   Future<void> logout() async {
     currentUser.value = null;
+    // Remove persisted session
+    try {
+      _storage.remove(_storageKey);
+    } catch (_) {}
     showInfo('Đã đăng xuất');
     // Quay về login và xóa lịch sử route
     Get.offAllNamed(AppRoutes.LOGIN);
