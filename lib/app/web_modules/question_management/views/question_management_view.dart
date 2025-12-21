@@ -17,7 +17,6 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           
             _buildCreateButton(),
 
             const SizedBox(height: 40),
@@ -32,9 +31,11 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                     name: item.name,
                     questionCount: item.questionCount,
                     createdAt: item.createdAt,
-                    onAssign: () => controller.assignTask(item.id),
-                    onEdit: () => controller.editSet(item.id),
-                    onDelete: () => controller.deleteSet(item.id),
+                    // Các hành động
+                    onAssign: () =>
+                        controller.assignTask(item), // Nút Giao bài
+                    onEdit: () => controller.editSet(item.id), // Nút Sửa
+                    onDelete: () => controller.deleteSet(item.id), // Nút Xóa
                   );
                 }).toList(),
               ),

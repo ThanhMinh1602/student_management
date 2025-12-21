@@ -3,7 +3,7 @@ import 'package:blooket/app/data/service/student_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:blooket/app/base/base_controller.dart';
+import 'package:blooket/app/core/base/base_controller.dart';
 import 'package:blooket/app/data/model/class_model.dart';
 import 'package:blooket/app/data/service/class_service.dart';
 import 'package:blooket/app/routes/app_routes.dart';

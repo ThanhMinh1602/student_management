@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:blooket/app/base/base_controller.dart';
+import 'package:blooket/app/core/base/base_controller.dart';
 import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 

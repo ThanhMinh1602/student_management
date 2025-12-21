@@ -1,4 +1,5 @@
 import 'package:blooket/app/data/service/class_service.dart';
+import 'package:blooket/app/data/service/question_service.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 import 'package:get/get.dart';
 
@@ -7,5 +8,6 @@ class InitialBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<ClassService>(() => ClassService(), fenix: true);
     Get.lazyPut<StudentService>(() => StudentService(), fenix: true);
+    Get.lazyPut<QuestionService>(() => QuestionService(), fenix: true);
   }
 }

@@ -1,5 +1,5 @@
 // Import BaseController
-import 'package:blooket/app/base/base_controller.dart';
+import 'package:blooket/app/core/base/base_controller.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:get/get.dart';
 

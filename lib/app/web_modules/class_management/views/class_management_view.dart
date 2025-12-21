@@ -54,7 +54,6 @@ class ClassManagementView extends GetView<ClassManagementController> {
                     initialData: 0, // Giá trị mặc định khi đang tải
                     builder: (context, snapshot) {
                       final count = snapshot.data ?? 0;
-
                       return ClassCard(
                         className: item.className,
                         subject: item.subject,
