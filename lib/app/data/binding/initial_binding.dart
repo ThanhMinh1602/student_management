@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<ClassService>(() => ClassService());
-    Get.lazyPut<StudentService>(() => StudentService());
+    Get.lazyPut<ClassService>(() => ClassService(), fenix: true);
+    Get.lazyPut<StudentService>(() => StudentService(), fenix: true);
   }
 }

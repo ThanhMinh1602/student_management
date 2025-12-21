@@ -1,61 +1,60 @@
-import 'package:blooket/app/core/components/appbar/custom_app_bar.dart'; // Import AppBar của bạn
+import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/web_modules/class_management/controller/class_management_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ClassManagementDetailView
-    extends GetView<ClassManagementDetailController> {
+class ClassManagementDetailView extends GetView<ClassManagementDetailController> {
   const ClassManagementDetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: controller.bgColor, // Màu nền tím nhạt 0xFFDCD6F7
-      appBar: const CustomAppBar(title: 'Quản Lý Học Viên'),
+      backgroundColor: controller.bgColor,
+      appBar: const CustomAppBar(title: 'Chi Tiết Lớp Học'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'DANH SÁCH LỚP HSK3',
+                  'DANH SÁCH HỌC VIÊN', // Tiêu đề
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                     fontSize: 32,
                     shadows: [
-                      const Shadow(
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
-                        color: Colors.black12,
-                      ),
+                      const Shadow(offset: Offset(0, 2), blurRadius: 4, color: Colors.black12),
                     ],
                   ),
                 ),
                 _buildAddButton(context),
               ],
             ),
-
             const SizedBox(height: 30),
 
-            // 2. Bảng dữ liệu (Container trắng bo góc)
+            // Bảng dữ liệu
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, 4),
-                    blurRadius: 10,
-                  ),
+                  BoxShadow(color: Colors.black.withOpacity(0.05), offset: const Offset(0, 4), blurRadius: 10),
                 ],
               ),
               padding: const EdgeInsets.all(20),
-              child: Obx(() => _buildDataTable(context)),
+              child: Obx(() {
+                 if (controller.studentsInClass.isEmpty) {
+                   return const Padding(
+                     padding: EdgeInsets.all(40),
+                     child: Center(child: Text("Lớp chưa có học viên nào.", style: TextStyle(color: Colors.grey))),
+                   );
+                 }
+                 return _buildDataTable(context);
+              }),
             ),
           ],
         ),
@@ -63,7 +62,7 @@ class ClassManagementDetailView
     );
   }
 
-  // --- WIDGET CON: Bảng dữ liệu ---
+  // --- BẢNG DỮ LIỆU ---
   Widget _buildDataTable(BuildContext context) {
     return DataTable(
       headingRowColor: MaterialStateProperty.all(Colors.transparent),
@@ -73,242 +72,148 @@ class ClassManagementDetailView
       columns: [
         _buildHeader('Họ và tên'),
         _buildHeader('Username'),
-        _buildHeader('Tổng thời gian'),
         _buildHeader('Điểm TB'),
-        _buildHeader('Trạng thái'),
         _buildHeader('Hành động', alignEnd: true),
       ],
-      rows: controller.students.map((student) {
+      rows: controller.studentsInClass.map((student) {
         return DataRow(
           cells: [
-            // 1. Họ tên (Có avatar nhỏ)
-            DataCell(
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: controller.primaryColor.withOpacity(0.2),
-                    child: Text(
-                      student.fullName[0],
-                      style: TextStyle(
-                        color: controller.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    student.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // 2. Username
-            DataCell(
-              Text(
-                student.username,
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ),
-            // 3. Thời gian
-            DataCell(Text(' phút')),
-            // 4. Điểm TB (Badge màu)
+            DataCell(Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: controller.primaryColor.withOpacity(0.2),
+                  child: Text(student.fullName.isNotEmpty ? student.fullName[0] : '?',
+                      style: TextStyle(color: controller.primaryColor, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 10),
+                Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              ],
+            )),
+            DataCell(Text(student.username, style: const TextStyle(color: Colors.grey))),
             DataCell(_buildScoreBadge(student.avgScore)),
-            // 5. Trạng thái
-            DataCell(_buildStatusBadge(student.isActive)),
-            // 6. Hành động
-            DataCell(
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _buildIconButton(
-                    Icons.lock_reset,
-                    Colors.orange,
-                    () => controller.resetPassword(student.id),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildIconButton(
-                    student.isActive ? Icons.block : Icons.check_circle,
-                    student.isActive ? Colors.red : Colors.green,
-                    () => controller.toggleStatus(student.id),
-                  ),
-                ],
-              ),
-            ),
+            DataCell(Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                 // Nút xóa khỏi lớp (khác với xóa tài khoản vĩnh viễn)
+                 IconButton(
+                   icon: const Icon(Icons.person_remove_rounded, color: Colors.redAccent),
+                   tooltip: "Xóa khỏi lớp",
+                   onPressed: () => controller.removeStudentFromClass(student.id),
+                 )
+              ],
+            )),
           ],
         );
       }).toList(),
     );
   }
 
-  // --- CÁC WIDGET NHỎ THEO VIBE ---
+  // --- DIALOG CHỌN HỌC VIÊN TỪ LIST CÓ SẴN ---
+  void _showAddDialog(BuildContext context) {
+    final availableStudents = controller.getAvailableStudents();
 
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Container(
+          width: 500, // Độ rộng cố định cho Dialog trên Web
+          height: 600,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Dialog
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("CHỌN HỌC VIÊN", 
+                    style: TextStyle(color: controller.primaryColor, fontSize: 24, fontWeight: FontWeight.w900)),
+                  IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close, color: Colors.grey))
+                ],
+              ),
+              const Divider(height: 30),
+              
+              // Search Bar (Optional - UI only for now)
+              TextField(
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  hintText: "Tìm kiếm tên hoặc username...",
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // List View Học viên có sẵn
+              Expanded(
+                child: availableStudents.isEmpty 
+                  ? const Center(child: Text("Không có học viên nào khả dụng", style: TextStyle(color: Colors.grey)))
+                  : ListView.separated(
+                      itemCount: availableStudents.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (ctx, index) {
+                        final student = availableStudents[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          leading: CircleAvatar(
+                            backgroundColor: controller.primaryColor.withOpacity(0.1),
+                            child: Text(student.fullName[0], style: TextStyle(color: controller.primaryColor, fontWeight: FontWeight.bold)),
+                          ),
+                          title: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text("@${student.username}"),
+                          trailing: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: controller.accentColor, // Màu hồng
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              elevation: 0,
+                            ),
+                            onPressed: () => controller.addStudentToClass(student.id),
+                            child: const Text("Thêm", style: TextStyle(color: Colors.white)),
+                          ),
+                        );
+                      },
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- CÁC WIDGET NHỎ ---
   DataColumn _buildHeader(String text, {bool alignEnd = false}) {
     return DataColumn(
       numeric: alignEnd,
-      label: Text(
-        text.toUpperCase(),
-        style: TextStyle(
-          color: controller.primaryColor, // Màu xanh tím cho header
-          fontWeight: FontWeight.w900,
-          fontSize: 14,
-        ),
-      ),
+      label: Text(text.toUpperCase(),
+        style: TextStyle(color: controller.primaryColor, fontWeight: FontWeight.w900, fontSize: 14)),
     );
   }
 
   Widget _buildAddButton(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () => _showAddDialog(context),
-      icon: const Icon(Icons.person_add, color: Colors.white),
-      label: const Text(
-        'THÊM HỌC VIÊN',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
+      icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
+      label: const Text('THÊM VÀO LỚP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: controller.accentColor, // Màu hồng 0xFFEDBBC6
+        backgroundColor: controller.accentColor,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 4,
-        shadowColor: controller.accentColor.withOpacity(0.4),
-      ),
-    );
-  }
-
-  Widget _buildIconButton(IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, size: 18, color: color),
       ),
     );
   }
 
   Widget _buildScoreBadge(double score) {
-    Color color = score >= 8
-        ? Colors.green
-        : (score >= 5 ? Colors.orange : Colors.red);
+    Color color = score >= 8 ? Colors.green : (score >= 5 ? Colors.orange : Colors.red);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        score.toString(),
-        style: TextStyle(color: color, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(bool isActive) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isActive
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        isActive ? 'Đang học' : 'Đã nghỉ',
-        style: TextStyle(
-          color: isActive ? Colors.green : Colors.red,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  // --- DIALOG ADD STUDENT (Style hồng) ---
-  void _showAddDialog(BuildContext context) {
-    final nameCtrl = TextEditingController();
-    final userCtrl = TextEditingController();
-
-    Get.defaultDialog(
-      title: "THÊM HỌC VIÊN",
-      titleStyle: TextStyle(
-        color: controller.primaryColor,
-        fontWeight: FontWeight.w900,
-      ),
-      contentPadding: const EdgeInsets.all(20),
-      content: Column(
-        children: [
-          _buildTextField(nameCtrl, 'Họ và tên', Icons.person),
-          const SizedBox(height: 16),
-          _buildTextField(userCtrl, 'Username', Icons.alternate_email),
-          const SizedBox(height: 10),
-          const Text(
-            'Mật khẩu mặc định: 123456',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-      confirm: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: controller.accentColor, // Màu hồng
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onPressed: () => controller.addStudent(nameCtrl.text, userCtrl.text),
-          child: const Text(
-            'XÁC NHẬN',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-      cancel: TextButton(
-        onPressed: () => Get.back(),
-        child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
-      ),
-      radius: 20,
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController ctrl,
-    String label,
-    IconData icon,
-  ) {
-    return TextField(
-      controller: ctrl,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: controller.primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: controller.primaryColor, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(score.toString(), style: TextStyle(color: color, fontWeight: FontWeight.bold)),
     );
   }
 }

@@ -15,37 +15,18 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(40.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Tiêu đề lớn
-            Text(
-              'TÀI LIỆU CỦA TÔI',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 40,
-                shadows: [
-                  const Shadow(
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
-                    color: Colors.black12,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // 2. Nút Tạo Mới (Create)
+           
             _buildCreateButton(),
 
             const SizedBox(height: 40),
 
-            // 3. Grid Danh sách bộ đề
             Obx(
               () => Wrap(
                 spacing: 30, // Khoảng cách ngang
                 runSpacing: 30, // Khoảng cách dọc
-                alignment: WrapAlignment.center, // Căn giữa
+                alignment: WrapAlignment.start, // Căn giữa
                 children: controller.questionSets.map((item) {
                   return QuestionSetCard(
                     name: item.name,

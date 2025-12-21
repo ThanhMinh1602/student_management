@@ -18,6 +18,49 @@ class StudentService {
         );
   }
 
+  // 3. Gán học viên vào lớp (Update classId)
+  Future<bool> assignStudentToClass(String studentId, String classId) async {
+    try {
+      await _studentRef.doc(studentId).update({'classId': classId});
+      return true;
+    } catch (e) {
+      print("Error assigning student: $e");
+      return false;
+    }
+  }
+
+  // 4. Xóa học viên khỏi lớp (Update classId về rỗng)
+  Future<bool> removeStudentFromClass(String studentId) async {
+    try {
+      await _studentRef.doc(studentId).update({'classId': ""});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 2. Lấy danh sách học viên THEO LỚP (để hiển thị bảng)
+  Stream<List<StudentModel>> getStudentsByClassStream(String classId) {
+    return _studentRef
+        .where(
+          'classId',
+          isEqualTo: classId,
+        ) // Giả sử StudentModel có trường classId
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => StudentModel.fromSnapshot(doc))
+              .toList(),
+        );
+  }
+
+  Stream<int> getStudentCountByClassStream(String classId) {
+    return _studentRef
+        .where('classId', isEqualTo: classId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length); // Trả về độ dài danh sách
+  }
+
   // Thêm tài khoản mới
   Future<bool> addStudent({
     required String fullName,

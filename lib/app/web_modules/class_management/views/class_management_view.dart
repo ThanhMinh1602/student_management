@@ -47,16 +47,24 @@ class ClassManagementView extends GetView<ClassManagementController> {
               () => Wrap(
                 spacing: 30,
                 runSpacing: 30,
-                alignment: WrapAlignment.center,
+                alignment: WrapAlignment.start,
                 children: controller.classList.map((item) {
-                  return ClassCard(
-                    className: item.className,
-                    subject: item.subject,
-                    schedule: item.schedule,
-                    studentCount: item.studentCount,
-                    onEnterClass: () => controller.enterClass(item.id),
-                    onEdit: () => controller.editClass(item.id),
-                    onDelete: () => controller.deleteClass(item.id),
+                 return StreamBuilder<int>(
+                    stream: controller.getClassStudentCount(item.id), // Gọi hàm đếm
+                    initialData: 0, // Giá trị mặc định khi đang tải
+                    builder: (context, snapshot) {
+                      final count = snapshot.data ?? 0;
+
+                      return ClassCard(
+                        className: item.className,
+                        subject: item.subject,
+                        schedule: item.schedule,
+                        studentCount: count, 
+                        onEnterClass: () => controller.enterClass(item.id),
+                        onEdit: () => controller.editClass(item.id),
+                        onDelete: () => controller.deleteClass(item.id),
+                      );
+                    },
                   );
                 }).toList(),
               ),

@@ -1,52 +1,96 @@
-import 'package:blooket/app/data/model/student_model.dart';
-import 'package:get/get.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-// --- CONTROLLER ---
-class ClassManagementDetailController extends GetxController {
-  // Dữ liệu Observable
-  var students = <StudentModel>[].obs;
+import 'package:blooket/app/base/base_controller.dart'; // Kế thừa BaseController để có loading/snackbar xịn
+import 'package:blooket/app/data/model/student_model.dart';
+import 'package:blooket/app/data/service/student_service.dart';
 
-  // Màu sắc theo vibe của bạn (để dùng chung)
-  final primaryColor = const Color(0xFF909CC2); // Xanh tím
-  final accentColor = const Color(0xFFEDBBC6); // Hồng
-  final bgColor = const Color(0xFFDCD6F7); // Nền tím nhạt
+class ClassManagementDetailController extends BaseController {
+  final StudentService _studentService; // Đảm bảo đã put service này ở binding
+
+  // Danh sách học viên TRONG LỚP (Hiển thị ra bảng)
+  final studentsInClass = <StudentModel>[].obs;
+
+  // Danh sách TẤT CẢ học viên (Dùng để lọc khi bấm nút thêm)
+  final allStudents = <StudentModel>[].obs;
+
+  late String currentClassId;
+  ClassManagementDetailController(this._studentService);
+
+  // Màu sắc vibe
+  final primaryColor = const Color(0xFF909CC2);
+  final accentColor = const Color(0xFFEDBBC6);
+  final bgColor = const Color(0xFFDCD6F7);
 
   @override
   void onInit() {
     super.onInit();
-    loadStudents();
+    // Lấy ID lớp được truyền từ màn hình trước
+    currentClassId = Get.parameters['id']??'';
+
+    if (currentClassId.isNotEmpty) {
+      // 1. Bind stream học viên trong lớp
+      studentsInClass.bindStream(
+        _studentService.getStudentsByClassStream(currentClassId),
+      );
+
+      // 2. Bind stream tất cả học viên (để dành cho dialog chọn)
+      allStudents.bindStream(_studentService.getAllStudentsStream());
+    }
   }
 
-  void loadStudents() {}
+  // --- HÀNH ĐỘNG ---
 
-  // Chức năng: Thêm học viên
-  void addStudent(String name, String username) {}
+  // Lấy danh sách học viên CHƯA vào lớp này (để hiện trong Dialog)
+  List<StudentModel> getAvailableStudents() {
+    return allStudents.where((s) => s.classId != currentClassId).toList();
+  }
 
-  // Chức năng: Reset Password
-  void resetPassword(String id) {
-    Get.snackbar(
-      'Reset Password',
-      'Đã đặt lại mật khẩu về 123456',
-      backgroundColor: Colors.white,
-      colorText: Colors.orange,
+  // Thêm học viên vào lớp
+  void addStudentToClass(String studentId) async {
+    Get.back(); // Đóng dialog chọn
+    showLoading();
+    bool success = await _studentService.assignStudentToClass(
+      studentId,
+      currentClassId,
+    );
+    hideLoading();
+
+    if (success) {
+      showSuccess("Đã thêm học viên vào lớp");
+    } else {
+      showError("Thất bại, vui lòng thử lại");
+    }
+  }
+
+  // Xóa học viên khỏi lớp
+  void removeStudentFromClass(String studentId) async {
+    Get.defaultDialog(
+      title: "Xóa khỏi lớp?",
+      middleText:
+          "Học viên sẽ bị xóa khỏi danh sách lớp này (Tài khoản vẫn tồn tại).",
+      textConfirm: "Xóa",
+      textCancel: "Hủy",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.redAccent,
+      onConfirm: () async {
+        Get.back();
+        showLoading();
+        bool success = await _studentService.removeStudentFromClass(studentId);
+        hideLoading();
+        if (success) showSuccess("Đã xóa khỏi lớp");
+      },
     );
   }
 
-  // Chức năng: Khóa/Mở khóa
-  void toggleStatus(String id) {
-    var index = students.indexWhere((s) => s.id == id);
-    if (index != -1) {
-      var student = students[index];
-      // student.isActive = !student.isActive;
-      students[index] = student; // Trigger update UI
+  // Các chức năng phụ
+  void resetPassword(String id) {
+    // Logic reset password
+    showSuccess("Đã reset mật khẩu");
+  }
 
-      Get.snackbar(
-        'Cập nhật',
-        student.isActive ? 'Đã mở khóa tài khoản' : 'Đã khóa tài khoản',
-        backgroundColor: Colors.white,
-        colorText: student.isActive ? Colors.green : Colors.red,
-      );
-    }
+  void toggleStatus(String id) {
+    // Logic khóa tài khoản
   }
 }

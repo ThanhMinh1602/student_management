@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:blooket/app/data/service/student_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,9 +12,12 @@ class ClassManagementController extends BaseController {
   // Dependency Injection thông qua constructor hoặc Get.find() đều được
   // Ở đây mình khởi tạo trực tiếp cho đơn giản, hoặc bạn có thể inject qua Binding
   final ClassService _classService;
-  ClassManagementController(this._classService);
+  final StudentService _studentService;
+  ClassManagementController(this._classService, this._studentService);
 
   final classList = <ClassModel>[].obs;
+  
+  
 
   @override
   void onInit() {
@@ -25,8 +29,7 @@ class ClassManagementController extends BaseController {
   // --- NAVIGATION ---
   void enterClass(String id) {
     Get.toNamed(
-      '${Get.currentRoute}${AppRoutes.CLASS_MANAGEMENT_DETAIL}',
-      arguments: id,
+      '${Get.currentRoute}/$id'
     );
   }
 
@@ -37,7 +40,9 @@ class ClassManagementController extends BaseController {
     final existingClass = classList.firstWhere((element) => element.id == id);
     _showFormDialog(classModel: existingClass);
   }
-
+Stream<int> getClassStudentCount(String classId) {
+    return _studentService.getStudentCountByClassStream(classId);
+  }
   // --- XÓA LỚP ---
   void deleteClass(String id) {
     Get.defaultDialog(
