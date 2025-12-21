@@ -31,4 +31,29 @@ class AssignmentModel {
     'endDate': endDate,
     'createdAt': FieldValue.serverTimestamp(),
   };
+
+  // Consistent mapping for local usage / persistence
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'questionSetId': questionSetId,
+        'questionSetName': questionSetName,
+        'classId': classId,
+        'className': className,
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate.toIso8601String(),
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory AssignmentModel.fromMap(Map<String, dynamic> map) {
+    return AssignmentModel(
+      id: map['id'] ?? '',
+      questionSetId: map['questionSetId'] ?? '',
+      questionSetName: map['questionSetName'] ?? '',
+      classId: map['classId'] ?? '',
+      className: map['className'] ?? '',
+      startDate: DateTime.parse(map['startDate'] ?? DateTime.now().toIso8601String()),
+      endDate: DateTime.parse(map['endDate'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now().toIso8601String()),
+    );
+  }
 }

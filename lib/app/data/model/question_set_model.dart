@@ -28,4 +28,23 @@ class QuestionSetModel {
     'questionCount': questionCount,
     'createdAt': FieldValue.serverTimestamp(),
   };
+
+  // Provide map serialization for local use
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name': name,
+        'questionCount': questionCount,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory QuestionSetModel.fromMap(Map<String, dynamic> map) {
+    return QuestionSetModel(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      questionCount: (map['questionCount'] ?? 0) is int
+          ? map['questionCount']
+          : (map['questionCount'] ?? 0).toInt(),
+      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+    );
+  }
 }

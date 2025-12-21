@@ -40,6 +40,27 @@ class ClassModel {
     };
   }
 
+  // For consistency: provide map serialization/deserialization for local storage or other uses
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'className': className,
+        'subject': subject,
+        'schedule': schedule,
+        'studentCount': studentCount,
+      };
+
+  factory ClassModel.fromMap(Map<String, dynamic> map) {
+    return ClassModel(
+      id: map['id'] ?? '',
+      className: map['className'] ?? '',
+      subject: map['subject'] ?? '',
+      schedule: map['schedule'] ?? '',
+      studentCount: (map['studentCount'] ?? 0) is int
+          ? map['studentCount']
+          : (map['studentCount'] ?? 0).toInt(),
+    );
+  }
+
   // Hàm copyWith (Giữ nguyên để dùng cho State Management nếu cần)
   ClassModel copyWith({
     String? id,

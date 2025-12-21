@@ -30,7 +30,7 @@ class StudentModel {
       fullName: data['fullName'] ?? '',
       username: data['username'] ?? '',
       password: data['password'] ?? '', 
-      role: data['role'] ?? 'student', // Mặc định là student nếu không có field này
+      role: data['role'] ?? 'student',
       classId: data['classId'] ?? '',
       avgScore: (data['avgScore'] ?? 0).toDouble(),
       isActive: data['isActive'] ?? true,

@@ -82,4 +82,34 @@ class QuestionModel {
       createdAt: this.createdAt,
     );
   }
+
+  // Map serialization for consistency with other models
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'setId': setId,
+        'type': type.name,
+        'content': content,
+        if (options != null) 'options': options,
+        'correctAnswer': correctAnswer,
+        if (correctOrder != null) 'correctOrder': correctOrder,
+        'createdAt': createdAt?.toIso8601String() ?? '',
+      };
+
+  factory QuestionModel.fromMap(Map<String, dynamic> map) {
+    return QuestionModel(
+      id: map['id'] ?? '',
+      setId: map['setId'] ?? '',
+      type: QuestionType.values.firstWhere(
+        (e) => e.name == (map['type'] ?? 'multipleChoice'),
+        orElse: () => QuestionType.multipleChoice,
+      ),
+      content: map['content'] ?? '',
+      options: map['options'] != null ? List<String>.from(map['options']) : null,
+      correctAnswer: map['correctAnswer'] ?? '',
+      correctOrder: map['correctOrder'] != null ? List<String>.from(map['correctOrder']) : null,
+      createdAt: map['createdAt'] != null && (map['createdAt'] as String).isNotEmpty
+          ? DateTime.tryParse(map['createdAt'])
+          : null,
+    );
+  }
 }
