@@ -70,6 +70,7 @@ class StudentManagementView extends GetView<StudentManagementController> {
                   columns: const [
                     DataColumn(label: Text('HỌ TÊN', style: TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900))),
                     DataColumn(label: Text('USERNAME', style: TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900))),
+                    DataColumn(label: Text('VAI TRÒ', style: TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900))), // 🔥 THÊM CỘT NÀY
                     DataColumn(label: Text('TRẠNG THÁI', style: TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900))),
                     DataColumn(label: Text('HÀNH ĐỘNG', style: TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.w900)), numeric: true),
                   ],
@@ -100,24 +101,52 @@ class StudentManagementView extends GetView<StudentManagementController> {
   DataRow _buildDataRow(StudentModel student) {
     return DataRow(
       cells: [
-        // Họ tên
+        // 1. Họ tên
         DataCell(Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: const Color(0xFF909CC2).withOpacity(0.2),
-              child: Text(student.fullName.isNotEmpty ? student.fullName[0].toUpperCase() : '?', 
-                style: const TextStyle(color: Color(0xFF909CC2), fontWeight: FontWeight.bold)),
+              // Nếu là Admin thì avatar màu khác cho dễ nhìn
+              backgroundColor: student.role == 'admin' 
+                  ? Colors.orangeAccent.withOpacity(0.2) 
+                  : const Color(0xFF909CC2).withOpacity(0.2),
+              child: Text(
+                student.fullName.isNotEmpty ? student.fullName[0].toUpperCase() : '?', 
+                style: TextStyle(
+                  color: student.role == 'admin' ? Colors.orange : const Color(0xFF909CC2), 
+                  fontWeight: FontWeight.bold
+                )
+              ),
             ),
             const SizedBox(width: 12),
             Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           ],
         )),
-        // Username
+        
+        // 2. Username
         DataCell(Text(student.username, style: TextStyle(color: Colors.grey[600]))),
-        // Trạng thái
+
+        // 3. Vai trò (Role) - 🔥 MỚI
+        DataCell(Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: student.role == 'admin' ? Colors.blue.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            student.role == 'admin' ? 'Quản trị viên' : 'Học viên',
+            style: TextStyle(
+              color: student.role == 'admin' ? Colors.blue : Colors.grey[700],
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        )),
+
+        // 4. Trạng thái
         DataCell(_buildStatusBadge(student.isActive)),
-        // Hành động
+
+        // 5. Hành động
         DataCell(Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [

@@ -64,10 +64,13 @@ class QuestionManagementController extends BaseController {
       },
     );
   }
-
+  void openDetail(String id, String name) {
+    Get.toNamed(
+      '${Get.currentRoute}/$id?name=$name',
+    );
+  }
   // Hàm Assign (đã làm ở bước trước, giữ nguyên)
   void assignTask(QuestionSetModel questionSet) {
-    // Nếu chưa có lớp nào thì báo lỗi
     if (classList.isEmpty) {
       showWarning("Bạn cần tạo Lớp học trước khi giao bài!");
       return;

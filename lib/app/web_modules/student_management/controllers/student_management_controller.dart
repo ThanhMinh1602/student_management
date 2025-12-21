@@ -10,6 +10,7 @@ class StudentManagementController extends BaseController {
   final StudentService _studentService;
   StudentManagementController(this._studentService);
   final studentList = <StudentModel>[].obs;
+  String selectedRole = 'student';
 
   @override
   void onInit() {
@@ -23,6 +24,9 @@ class StudentManagementController extends BaseController {
   void showAddStudentDialog() {
     final nameCtrl = TextEditingController();
     final userCtrl = TextEditingController();
+    
+    // Reset role về mặc định mỗi khi mở dialog
+    selectedRole = 'student'; 
 
     Get.defaultDialog(
       title: "CẤP TÀI KHOẢN MỚI",
@@ -34,13 +38,30 @@ class StudentManagementController extends BaseController {
       contentPadding: const EdgeInsets.all(20),
       content: Column(
         children: [
-          _buildTextField(nameCtrl, "Họ và tên học viên", Icons.person),
+          _buildTextField(nameCtrl, "Họ và tên", Icons.person),
           const SizedBox(height: 16),
-          _buildTextField(
-            userCtrl,
-            "Tên đăng nhập (Username)",
-            Icons.alternate_email,
+          _buildTextField(userCtrl, "Username", Icons.alternate_email),
+          const SizedBox(height: 16),
+          
+          // 🔥 THÊM DROPDOWN CHỌN QUYỀN (ROLE)
+          DropdownButtonFormField<String>(
+            value: selectedRole,
+            decoration: InputDecoration(
+              labelText: "Vai trò",
+              prefixIcon: const Icon(Icons.security, color: Color(0xFF909CC2)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+            ),
+            items: const [
+              DropdownMenuItem(value: 'student', child: Text("Học viên")),
+              DropdownMenuItem(value: 'admin', child: Text("Quản trị viên")),
+            ],
+            onChanged: (val) {
+              if (val != null) selectedRole = val;
+            },
           ),
+
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -54,12 +75,8 @@ class StudentManagementController extends BaseController {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Mật khẩu mặc định sẽ là: 123456",
-                    style: TextStyle(
-                      color: Colors.orange,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    "Mật khẩu mặc định: 123456",
+                    style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -71,11 +88,9 @@ class StudentManagementController extends BaseController {
         width: double.infinity,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF88D8B0), // Màu xanh Mint
+            backgroundColor: const Color(0xFF88D8B0),
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           onPressed: () async {
             if (nameCtrl.text.isEmpty || userCtrl.text.isEmpty) {
@@ -83,30 +98,27 @@ class StudentManagementController extends BaseController {
               return;
             }
 
-            Get.back(); // 1. Đóng dialog
-            await Future.delayed(
-              const Duration(milliseconds: 300),
-            ); // Delay tránh xung đột
+            Get.back();
+            await Future.delayed(const Duration(milliseconds: 300));
 
-            showLoading(); // 2. Loading
+            showLoading();
 
             bool success = await _studentService.addStudent(
               fullName: nameCtrl.text,
               username: userCtrl.text,
+              role: selectedRole, // 🔥 Truyền Role đã chọn
+              password: '123456', // 🔥 Truyền Password mặc định
             );
 
-            hideLoading(); // 3. Tắt Loading
+            hideLoading();
 
             if (success) {
               showSuccess("Đã cấp tài khoản thành công");
             } else {
-              showError("Thất bại. Có thể Username đã tồn tại.");
+              showError("Thất bại. Username đã tồn tại.");
             }
           },
-          child: const Text(
-            "TẠO TÀI KHOẢN",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
+          child: const Text("TẠO TÀI KHOẢN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
       cancel: TextButton(

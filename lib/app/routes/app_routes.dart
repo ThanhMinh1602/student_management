@@ -2,7 +2,9 @@ class AppRoutes {
   static const LOGIN = '/login';
   static const DASHBOARD = '/dashboard';
   static const QUESTION_MANAGEMENT = '/question_management';
+  static const QUESTION_MANAGEMENT_DETAIL = '/:id';
   static const CLASS_MANAGEMENT = '/class_management';
   static const CLASS_MANAGEMENT_DETAIL = '/:id';
   static const STUDENT_MANAGEMENT = '/student_management';
+  static const STUDENT_MANAGEMENT_DETAIL = '/:id';
 }

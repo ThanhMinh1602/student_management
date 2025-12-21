@@ -36,6 +36,7 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                         controller.assignTask(item), // Nút Giao bài
                     onEdit: () => controller.editSet(item.id), // Nút Sửa
                     onDelete: () => controller.deleteSet(item.id), // Nút Xóa
+                    onDetail: () => controller.openDetail(item.id, item.name),
                   );
                 }).toList(),
               ),

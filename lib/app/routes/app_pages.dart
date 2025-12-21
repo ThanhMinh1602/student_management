@@ -6,6 +6,8 @@ import 'package:blooket/app/web_modules/class_management/views/class_management_
 import 'package:blooket/app/web_modules/dashboard/binding/dashboard_binding.dart';
 import 'package:blooket/app/web_modules/dashboard/view/dashboard_view.dart';
 import 'package:blooket/app/web_modules/question_management/binding/question_management_binding.dart';
+import 'package:blooket/app/web_modules/question_management/binding/question_management_detail_binding.dart';
+import 'package:blooket/app/web_modules/question_management/views/question_management_detail_view.dart';
 import 'package:blooket/app/web_modules/question_management/views/question_management_view.dart';
 import 'package:blooket/app/web_modules/student_management/binding/student_management_binding.dart';
 import 'package:blooket/app/web_modules/student_management/views/student_management_view.dart';
@@ -49,6 +51,13 @@ class AppPages {
           name: AppRoutes.QUESTION_MANAGEMENT,
           page: () => const QuestionManagementView(),
           binding: QuestionManagementBinding(),
+          children: [
+            GetPage(
+              name: AppRoutes.QUESTION_MANAGEMENT_DETAIL,
+              page: () => const QuestionManagementDetailView(),
+              binding: QuestionManagementDetailBinding(),
+            ),
+          ],
         ),
       ],
     ),

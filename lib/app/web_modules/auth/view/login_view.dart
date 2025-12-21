@@ -29,7 +29,6 @@ class _LoginViewState extends State<LoginView> {
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
-    _authController.onClose();
     super.dispose();
   }
 
@@ -128,10 +127,12 @@ class _LoginViewState extends State<LoginView> {
                     const SizedBox(height: 10),
 
                     // Nút Login
-                    CustomButton(
+                 CustomButton(
                       text: 'Xác nhận',
                       onPressed: () {
-                        // Handle login
+                        // Đóng bàn phím ảo trước khi login cho gọn UI
+                        FocusScope.of(context).unfocus(); 
+                        
                         String username = _usernameController.text.trim();
                         String password = _passwordController.text.trim();
                         _authController.login(username, password);

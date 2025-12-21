@@ -4,7 +4,9 @@ class StudentModel {
   final String id;
   final String fullName;
   final String username;
-  final String classId; // Để biết học viên thuộc lớp nào
+  final String password; // Thêm field này để check login (Lưu ý: Thực tế nên hash)
+  final String role;     // Thêm field này: 'admin' hoặc 'student'
+  final String classId;
   final double avgScore;
   final bool isActive;
   final DateTime createdAt;
@@ -13,6 +15,8 @@ class StudentModel {
     required this.id,
     required this.fullName,
     required this.username,
+    required this.password,
+    required this.role,
     required this.classId,
     required this.avgScore,
     required this.isActive,
@@ -25,6 +29,8 @@ class StudentModel {
       id: doc.id,
       fullName: data['fullName'] ?? '',
       username: data['username'] ?? '',
+      password: data['password'] ?? '', 
+      role: data['role'] ?? 'student', // Mặc định là student nếu không có field này
       classId: data['classId'] ?? '',
       avgScore: (data['avgScore'] ?? 0).toDouble(),
       isActive: data['isActive'] ?? true,

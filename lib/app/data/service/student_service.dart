@@ -6,9 +6,10 @@ class StudentService {
     'students',
   );
 
-  // Lấy TOÀN BỘ danh sách học viên (Sắp xếp mới nhất lên đầu)
+  // 1. Lấy TOÀN BỘ danh sách HỌC VIÊN (Bỏ qua Admin)
   Stream<List<StudentModel>> getAllStudentsStream() {
     return _studentRef
+        .where('role', isEqualTo: 'student') // 🔥 CHỈ LẤY ROLE STUDENT
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
@@ -18,7 +19,31 @@ class StudentService {
         );
   }
 
-  // 3. Gán học viên vào lớp (Update classId)
+  // 2. Lấy danh sách học viên THEO LỚP
+  Stream<List<StudentModel>> getStudentsByClassStream(String classId) {
+    return _studentRef
+        .where('classId', isEqualTo: classId)
+        .where('role', isEqualTo: 'student') // 🔥 Đảm bảo chỉ lấy học viên
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => StudentModel.fromSnapshot(doc))
+              .toList(),
+        );
+  }
+
+  // 3. Đếm số học viên trong lớp
+  Stream<int> getStudentCountByClassStream(String classId) {
+    return _studentRef
+        .where('classId', isEqualTo: classId)
+        .where('role', isEqualTo: 'student') // 🔥 Chỉ đếm học viên
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  // --- CÁC HÀM GHI DỮ LIỆU (WRITE) GIỮ NGUYÊN ---
+
+  // Gán học viên vào lớp
   Future<bool> assignStudentToClass(String studentId, String classId) async {
     try {
       await _studentRef.doc(studentId).update({'classId': classId});
@@ -29,7 +54,7 @@ class StudentService {
     }
   }
 
-  // 4. Xóa học viên khỏi lớp (Update classId về rỗng)
+  // Xóa học viên khỏi lớp
   Future<bool> removeStudentFromClass(String studentId) async {
     try {
       await _studentRef.doc(studentId).update({'classId': ""});
@@ -39,47 +64,29 @@ class StudentService {
     }
   }
 
-  // 2. Lấy danh sách học viên THEO LỚP (để hiển thị bảng)
-  Stream<List<StudentModel>> getStudentsByClassStream(String classId) {
-    return _studentRef
-        .where(
-          'classId',
-          isEqualTo: classId,
-        ) // Giả sử StudentModel có trường classId
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => StudentModel.fromSnapshot(doc))
-              .toList(),
-        );
-  }
-
-  Stream<int> getStudentCountByClassStream(String classId) {
-    return _studentRef
-        .where('classId', isEqualTo: classId)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length); // Trả về độ dài danh sách
-  }
-
   // Thêm tài khoản mới
   Future<bool> addStudent({
     required String fullName,
     required String username,
+    String role = 'student', 
+    String password = '123456',
   }) async {
     try {
-      // Kiểm tra username đã tồn tại chưa (Optional)
       final check = await _studentRef
           .where('username', isEqualTo: username)
           .get();
-      if (check.docs.isNotEmpty) return false; // Username bị trùng
+      
+      if (check.docs.isNotEmpty) return false;
 
       await _studentRef.add({
         'fullName': fullName,
         'username': username,
+        'password': password,
+        'role': role,
+        'classId': '',
         'avgScore': 0.0,
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
-        // Password mặc định 123456 sẽ được xử lý ở Auth Service khi user login lần đầu
       });
       return true;
     } catch (e) {
@@ -88,7 +95,7 @@ class StudentService {
     }
   }
 
-  // Toggle trạng thái (Khóa/Mở)
+  // Toggle trạng thái
   Future<bool> toggleStatus(String id, bool currentStatus) async {
     try {
       await _studentRef.doc(id).update({'isActive': !currentStatus});
@@ -101,15 +108,15 @@ class StudentService {
   // Reset mật khẩu
   Future<bool> resetPassword(String id) async {
     try {
-      // Logic gọi Cloud Function hoặc API để reset pass
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Trong thực tế: Update field password thành '123456'
+      await _studentRef.doc(id).update({'password': '123456'});
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  // Xóa học viên (Nếu cần)
+  // Xóa học viên
   Future<bool> deleteStudent(String id) async {
     try {
       await _studentRef.doc(id).delete();
