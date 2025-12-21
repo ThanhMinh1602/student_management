@@ -1,9 +1,8 @@
 import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:blooket/app/web_modules/dashboard/widgets/dashboard_app_bar.dart';
+import 'package:blooket/app/web_modules/auth/controller/auth_controller.dart';
 import 'package:blooket/app/web_modules/dashboard/widgets/dashboard_item_card.dart';
-// Import widget mới
-import 'package:blooket/app/web_modules/dashboard/widgets/stat_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,9 +11,35 @@ class DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), // Màu nền xám xanh hiện đại
-      appBar: const DashboardAppBar(userName: 'Nhật Ny'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Obx(() {
+          final user = authController.currentUser.value;
+          final name = user?.fullName ?? 'Admin';
+          final avatar = null; // nếu có field avatar trong model thì truyền vào
+          return DashboardAppBar(
+            userName: name,
+            avatarUrl: avatar,
+            onAvatarTap: () {
+              // Hiện dialog xác nhận logout
+              Get.defaultDialog(
+                title: 'Đăng xuất',
+                middleText: 'Bạn có chắc muốn đăng xuất?',
+                textConfirm: 'Đồng ý',
+                textCancel: 'Hủy',
+                onConfirm: () {
+                  Get.back();
+                  authController.logout();
+                },
+              );
+            },
+          );
+        }),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         child: Column(
@@ -39,19 +64,24 @@ class DashboardView extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Chào mừng trở lại, Nhật Ny! 👋',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
+                  // Dùng Obx để render tên động
+                  Obx(() {
+                    final user = authController.currentUser.value;
+                    final name = user?.fullName ?? 'Admin';
+                    return Text(
+                      'Chào mừng trở lại, $name! 👋',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  const Text(
                     'Hôm nay bạn muốn quản lý lớp học nào?',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),

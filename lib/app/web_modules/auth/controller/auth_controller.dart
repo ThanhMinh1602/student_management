@@ -1,4 +1,5 @@
 import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/auth_service.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:get/get.dart';
@@ -6,7 +7,12 @@ import 'package:get/get.dart';
 class AuthController extends BaseController {
   final AuthService _authService;
 
+  // Lưu user hiện tại (null nếu chưa đăng nhập)
+  final Rxn<StudentModel> currentUser = Rxn<StudentModel>();
+
   AuthController(this._authService); // Khởi tạo Service
+
+  bool get isLoggedIn => currentUser.value != null;
 
   Future<void> login(String username, String password) async {
     // 1. Validate đầu vào
@@ -38,6 +44,8 @@ class AuthController extends BaseController {
 
       // 6. CHECK ROLE (Quan trọng)
       if (user.role == 'admin') {
+        // Lưu user hiện tại để dùng ở các màn hình khác
+        currentUser.value = user;
         showSuccess('Xin chào Admin ${user.fullName}');
         Get.offAllNamed(AppRoutes.DASHBOARD);
       } else {
@@ -49,5 +57,13 @@ class AuthController extends BaseController {
       hideLoading();
       showError('Đã có lỗi xảy ra: $e');
     }
+  }
+
+  // Hàm đăng xuất: xóa user và quay về màn hình login
+  Future<void> logout() async {
+    currentUser.value = null;
+    showInfo('Đã đăng xuất');
+    // Quay về login và xóa lịch sử route
+    Get.offAllNamed(AppRoutes.LOGIN);
   }
 }
