@@ -1,4 +1,4 @@
-import 'package:blooket/app/core/constants/app_color.dart';
+import 'package:blooket/app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 // Nhớ import file chứa AppColor của bạn vào đây
 // import 'path/to/app_colors.dart';
@@ -21,8 +21,8 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor ?? AppColor.primary,
-        foregroundColor: foregroundColor ?? AppColor.white,
+  backgroundColor: backgroundColor ?? AppColors.primary,
+  foregroundColor: foregroundColor ?? AppColors.white,
         minimumSize: const Size(double.infinity, 50),
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

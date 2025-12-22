@@ -1,4 +1,4 @@
-import 'package:blooket/app/core/constants/app_color.dart';
+import 'package:blooket/app/core/constants/app_colors.dart';
 import 'package:blooket/app/data/binding/initial_binding.dart';
 import 'package:blooket/app/routes/app_pages.dart';
 import 'package:blooket/firebase_options.dart';
@@ -27,10 +27,10 @@ void configLoading() {
     ..loadingStyle = EasyLoadingStyle.dark
     ..indicatorSize = 45.0
     ..radius = 10.0
-    ..progressColor = AppColor.primary
-    ..backgroundColor = AppColor.secondary
-    ..indicatorColor = AppColor.primary
-    ..textColor = AppColor.primary
+    ..progressColor = AppColors.primary
+    ..backgroundColor = AppColors.secondary
+    ..indicatorColor = AppColors.primary
+    ..textColor = AppColors.primary
     ..maskType = EasyLoadingMaskType.black
     ..userInteractions = false
     ..dismissOnTap = false;

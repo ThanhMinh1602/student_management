@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../constants/app_color.dart';
+import '../../constants/app_colors.dart';
 import '../../constants/strings.dart';
 
 /// Reusable App header used across admin screens.
@@ -34,13 +34,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: backgroundColor ?? AppColor.pink,
+  backgroundColor: backgroundColor ?? AppColors.pink,
       elevation: 0,
       automaticallyImplyLeading: false,
       leading: showBackButton
           ? IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded,
-                  color: titleColor ?? AppColor.white, size: 20),
+        icon: Icon(Icons.arrow_back_ios_new_rounded,
+          color: titleColor ?? AppColors.white, size: 20),
               onPressed: onLeadingPressed ?? () => Get.back(),
             )
           : null,
@@ -55,13 +55,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.school, color: AppColor.primary, size: 20),
+              child: const Icon(Icons.school, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 10),
             Text(
               AppStrings.appName,
-              style: TextStyle(
-                color: titleColor ?? AppColor.white,
+                style: TextStyle(
+                color: titleColor ?? AppColors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -71,7 +71,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             Text(
               title ?? '',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: titleColor ?? AppColor.white,
+                    color: titleColor ?? AppColors.white,
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -86,7 +86,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               Text(
                 '${AppStrings.welcomePrefix}${userName!}',
                 style: TextStyle(
-                  color: titleColor ?? AppColor.white,
+                  color: titleColor ?? AppColors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -96,15 +96,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 onTap: onAvatarTap,
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundColor: AppColor.secondary,
+                  backgroundColor: AppColors.secondary,
                   backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
                       ? NetworkImage(avatarUrl!)
                       : null,
                   child: (avatarUrl == null || avatarUrl!.isEmpty)
-                      ? Text(
+                            ? Text(
                           _getFirstLetter(userName!),
                           style: const TextStyle(
-                            color: AppColor.white,
+                            color: AppColors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         )

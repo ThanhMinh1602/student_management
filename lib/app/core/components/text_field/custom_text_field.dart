@@ -1,4 +1,4 @@
-import 'package:blooket/app/core/constants/app_color.dart';
+import 'package:blooket/app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -9,6 +9,9 @@ class CustomTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final Widget? suffixIcon; // Dùng cho các icon khác (nếu không phải password)
   final bool isPassword;    // Thêm cờ này để xác định là ô mật khẩu
+  final TextInputAction ? textInputAction;
+  final void Function(String)? onSubmitted;
+
 
   const CustomTextField({
     super.key,
@@ -19,6 +22,8 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.suffixIcon,
     this.isPassword = false, // Mặc định là false (nhập văn bản thường)
+    this.textInputAction,
+    this.onSubmitted,
   });
 
   @override
@@ -46,12 +51,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
     final focusedBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColor.primary, width: 2),
+      borderSide: const BorderSide(color: AppColors.primary, width: 2),
     );
 
     return TextFormField(
       controller: widget.controller,
       validator: widget.validator,
+      textInputAction: widget.textInputAction,
+      onFieldSubmitted: widget.onSubmitted,
       
       // Sử dụng biến state nội bộ để ẩn hiện
       obscureText: _obscureText, 
@@ -63,7 +70,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         fillColor: Colors.white,
         prefixIcon: Icon(
           widget.prefixIcon,
-          color: AppColor.primary,
+          color: AppColors.primary,
         ),
 
         // LOGIC QUAN TRỌNG Ở ĐÂY:
@@ -74,7 +81,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 icon: Icon(
                   // Đổi icon dựa trên trạng thái _obscureText
                   _obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: AppColor.primary,
+                  color: AppColors.primary,
                 ),
                 onPressed: () {
                   // Cập nhật lại giao diện khi bấm nút
@@ -89,7 +96,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         enabledBorder: outlineInputBorder,
         focusedBorder: focusedBorder,
         labelStyle: TextStyle(color: Colors.grey[600]),
-        floatingLabelStyle: const TextStyle(color: AppColor.primary),
+  floatingLabelStyle: const TextStyle(color: AppColors.primary),
       ),
     );
   }
