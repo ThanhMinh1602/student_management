@@ -1,3 +1,5 @@
+import 'package:blooket/app/modules/user/exercises/binding/exercises_binding.dart';
+import 'package:blooket/app/modules/user/exercises/views/exercises_view.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:blooket/app/modules/admin/class_management/binding/class_management_binding.dart';
 import 'package:blooket/app/modules/admin/class_management/binding/class_management_detail_binding.dart';
@@ -60,6 +62,11 @@ class AppPages {
           ],
         ),
       ],
+    ),
+    GetPage(
+      name: AppRoutes.EXERCISES,
+      page: () => const ExercisesView(),
+      binding: ExercisesBinding(),
     ),
   ];
 }

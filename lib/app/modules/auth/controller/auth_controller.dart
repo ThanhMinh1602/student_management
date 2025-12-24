@@ -24,7 +24,9 @@ class AuthController extends BaseController {
     final data = _storage.read(_storageKey);
     if (data != null && data is Map<String, dynamic>) {
       try {
-        currentUser.value = StudentModel.fromMap(Map<String, dynamic>.from(data));
+        currentUser.value = StudentModel.fromMap(
+          Map<String, dynamic>.from(data),
+        );
       } catch (_) {
         // ignore: avoid_print
         print('Failed to restore user session');
@@ -35,48 +37,58 @@ class AuthController extends BaseController {
   bool get isLoggedIn => currentUser.value != null;
 
   Future<void> login(String username, String password) async {
-    // 1. Validate đầu vào
-    if (username.isEmpty || password.isEmpty) {
+    // 1. Trim dữ liệu đầu vào để tránh lỗi khoảng trắng thừa
+    final cleanUsername = username.trim();
+    final cleanPassword = password.trim();
+
+    if (cleanUsername.isEmpty || cleanPassword.isEmpty) {
       showWarning('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');
       return;
     }
 
     try {
-      // 2. Show Loading
       showLoading();
 
-      // 3. Gọi Service để lấy thông tin User
-      final user = await _authService.login(username, password);
+      // 2. Gọi API
+      final user = await _authService.login(cleanUsername, cleanPassword);
 
-      // 4. Ẩn Loading ngay sau khi có kết quả
-      hideLoading();
+      // Lưu ý: Không hideLoading ở đây nữa, để finally xử lý hoặc hide trước khi navigate
 
       if (user == null) {
+        hideLoading(); // Cần hide ở đây vì return sớm
         showError('Sai tên đăng nhập hoặc mật khẩu');
         return;
       }
 
-      // 5. Kiểm tra trạng thái tài khoản
       if (!user.isActive) {
+        hideLoading();
         showError('Tài khoản của bạn đã bị khóa');
         return;
       }
 
-      // 6. CHECK ROLE (Quan trọng)
-      if (user.role == 'admin') {
-        // Lưu user hiện tại để dùng ở các màn hình khác
-        currentUser.value = user;
-        // Persist to storage
-        try {
-          _storage.write(_storageKey, user.toMap());
-        } catch (_) {}
-        showSuccess('Xin chào Admin ${user.fullName}');
-        Get.offAllNamed(AppRoutes.DASHBOARD);
-      } else {
-        // Nếu là student hoặc role khác
-        showWarning('Bạn không có quyền truy cập vào trang quản trị (Admin Only)');
+      // --- SỬA LỖI: Đưa logic lưu user ra ngoài để áp dụng cho TẤT CẢ role ---
+
+      // 3. Cập nhật State quản lý User toàn cục
+      currentUser.value = user;
+
+      // 4. Lưu vào Local Storage (để tự động login lần sau)
+      try {
+        await _storage.write(_storageKey, user.toMap());
+      } catch (e) {
+        print('Lỗi lưu session: $e'); // Log để debug thay vì bỏ qua
       }
 
+      showSuccess('Xin chào ${user.fullName}');
+
+      // Tắt loading trước khi chuyển trang để tránh memory leak hoặc glitch UI
+      hideLoading();
+
+      // 5. Điều hướng dựa trên Role
+      if (user.role == 'admin') {
+        Get.offAllNamed(AppRoutes.DASHBOARD);
+      } else {
+        Get.offAllNamed(AppRoutes.EXERCISES);
+      }
     } catch (e) {
       hideLoading();
       showError('Đã có lỗi xảy ra: $e');
