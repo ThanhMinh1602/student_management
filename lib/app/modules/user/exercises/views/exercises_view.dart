@@ -2,13 +2,21 @@ import 'package:blooket/app/modules/user/exercises/widgets/exercise_card.dart';
 import 'package:flutter/material.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/core/constants/app_color.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 // Import các widget con đã tách ở dưới
 // import 'path/to/exercise_card.dart';
 
-class ExercisesView extends StatelessWidget {
+class ExercisesView extends StatefulWidget {
   const ExercisesView({super.key});
 
+  @override
+  State<ExercisesView> createState() => _ExercisesViewState();
+}
+
+class _ExercisesViewState extends State<ExercisesView> {
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +54,7 @@ class ExercisesView extends StatelessWidget {
                   level: 'SƠ CẤP',
                   range: '${index * 5 + 1} - ${(index + 1) * 5}',
                   onStart: () {
-                    print("Start bài tập $index");
+                     Get.toNamed('${Get.currentRoute}/$index'); // Điều hướng đến trang chi tiết bài tập
                   },
                 );
               },

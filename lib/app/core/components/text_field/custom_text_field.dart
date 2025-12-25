@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatefulWidget {
   final String labelText;
-  final IconData prefixIcon;
+  final IconData? prefixIcon;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
@@ -16,7 +16,7 @@ class CustomTextField extends StatefulWidget {
   const CustomTextField({
     super.key,
     required this.labelText,
-    required this.prefixIcon,
+     this.prefixIcon,
     this.controller,
     this.validator,
     this.keyboardType = TextInputType.text,
@@ -68,10 +68,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
         labelText: widget.labelText,
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: Icon(
+        prefixIcon: widget.prefixIcon != null ? Icon(
           widget.prefixIcon,
           color: AppColors.primary,
-        ),
+        ) : null,
 
         // LOGIC QUAN TRỌNG Ở ĐÂY:
         // Nếu là password -> Hiện nút con mắt để toggle

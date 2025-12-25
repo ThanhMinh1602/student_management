@@ -1,5 +1,7 @@
 import 'package:blooket/app/modules/user/exercises/binding/exercises_binding.dart';
 import 'package:blooket/app/modules/user/exercises/views/exercises_view.dart';
+import 'package:blooket/app/modules/user/exercises_detail/binding/exercises_detail_binding.dart';
+import 'package:blooket/app/modules/user/exercises_detail/views/exercises_detail_view.dart';
 import 'package:blooket/app/routes/app_routes.dart';
 import 'package:blooket/app/modules/admin/class_management/binding/class_management_binding.dart';
 import 'package:blooket/app/modules/admin/class_management/binding/class_management_detail_binding.dart';
@@ -67,6 +69,13 @@ class AppPages {
       name: AppRoutes.EXERCISES,
       page: () => const ExercisesView(),
       binding: ExercisesBinding(),
+      children: [
+        GetPage(
+          name: AppRoutes.EXERCISES_DETAIL,
+          page: () => const ExercisesDetailView(),
+          binding: ExercisesDetailBinding(),
+        ),
+      ],
     ),
   ];
 }
