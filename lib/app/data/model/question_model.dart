@@ -1,10 +1,6 @@
+import 'package:blooket/app/data/enum/question_type.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum QuestionType {
-  multipleChoice, // Trắc nghiệm
-  rearrange,      // Sắp xếp câu
-  translate,      // Dịch câu
-}
 
 class QuestionModel {
   final String id;
@@ -60,7 +56,7 @@ class QuestionModel {
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
-
+  
   // CopyWith để dùng cho chức năng Sửa
   QuestionModel copyWith({
     String? id,

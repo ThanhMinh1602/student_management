@@ -1,3 +1,4 @@
+import 'package:blooket/app/data/enum/question_type.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
@@ -14,53 +15,54 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
   return Scaffold(
       backgroundColor: controller.bgColor,
       appBar: const CustomAppBar(title: 'Chi Tiết Bộ Đề'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'BỘ ĐỀ: ${controller.setName.toUpperCase()}',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 32,
-                      shadows: [
-                        const Shadow(offset: Offset(0, 2), blurRadius: 4, color: Colors.black12),
-                      ],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _buildAddButton(),
-              ],
-            ),
-            const SizedBox(height: 30),
+      body: QuestionDialog(onSave: (abc){}, setId: '123',)
+      // SingleChildScrollView(
+      //   padding: const EdgeInsets.all(40.0),
+      //   child: Column(
+      //     crossAxisAlignment: CrossAxisAlignment.stretch,
+      //     children: [
+      //       // Header
+      //       Row(
+      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //         children: [
+      //           Expanded(
+      //             child: Text(
+      //               'BỘ ĐỀ: ${controller.setName.toUpperCase()}',
+      //               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+      //                 color: Colors.white,
+      //                 fontWeight: FontWeight.w900,
+      //                 fontSize: 32,
+      //                 shadows: [
+      //                   const Shadow(offset: Offset(0, 2), blurRadius: 4, color: Colors.black12),
+      //                 ],
+      //               ),
+      //               overflow: TextOverflow.ellipsis,
+      //             ),
+      //           ),
+      //           _buildAddButton(),
+      //         ],
+      //       ),
+      //       const SizedBox(height: 30),
 
-            // Danh sách câu hỏi
-            Obx(() {
-               if (controller.questions.isEmpty) {
-                 return _buildEmptyState();
-               }
-               return ListView.separated(
-                 shrinkWrap: true,
-                 physics: const NeverScrollableScrollPhysics(),
-                 itemCount: controller.questions.length,
-                 separatorBuilder: (_, __) => const SizedBox(height: 16),
-                 itemBuilder: (ctx, index) {
-                   final q = controller.questions[index];
-                   return _buildQuestionCard(q, index + 1);
-                 },
-               );
-            }),
-          ],
-        ),
-      ),
+      //       // Danh sách câu hỏi
+      //       Obx(() {
+      //          if (controller.questions.isEmpty) {
+      //            return _buildEmptyState();
+      //          }
+      //          return ListView.separated(
+      //            shrinkWrap: true,
+      //            physics: const NeverScrollableScrollPhysics(),
+      //            itemCount: controller.questions.length,
+      //            separatorBuilder: (_, __) => const SizedBox(height: 16),
+      //            itemBuilder: (ctx, index) {
+      //              final q = controller.questions[index];
+      //              return _buildQuestionCard(q, index + 1);
+      //            },
+      //          );
+      //       }),
+      //     ],
+      //   ),
+      // ),
     );
   }
 
@@ -146,7 +148,7 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(_getTypeName(q.type), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  child: Text(q.type.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
                 ),
                 const SizedBox(height: 8),
                 
@@ -212,10 +214,4 @@ class QuestionManagementDetailView extends GetView<QuestionManagementDetailContr
     );
   }
 
-  String _getTypeName(QuestionType type) {
-    if (type == QuestionType.multipleChoice) return "TRẮC NGHIỆM";
-    if (type == QuestionType.rearrange) return "SẮP XẾP CÂU";
-    if (type == QuestionType.translate) return "DỊCH CÂU";
-    return "";
-  }
 }

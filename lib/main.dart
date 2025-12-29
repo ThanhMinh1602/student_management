@@ -49,7 +49,6 @@ class MyApp extends StatelessWidget {
       getPages: AppPages.routes,
       initialRoute: AppPages.INITIAL,
       initialBinding: InitialBinding(),
-
       // 3. QUAN TRỌNG NHẤT: Khởi tạo EasyLoading tại đây
       builder: EasyLoading.init(),
     );
