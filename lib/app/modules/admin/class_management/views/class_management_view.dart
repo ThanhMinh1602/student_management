@@ -1,3 +1,5 @@
+import 'package:blooket/app/core/components/appbar/app_header.dart';
+import 'package:blooket/app/core/components/sidebar/side_bar.dart';
 import 'package:blooket/app/modules/admin/class_management/controller/class_management_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,98 +17,113 @@ class ClassManagementView extends GetView<ClassManagementController> {
       backgroundColor: const Color(
         0xFFDCD6F7,
       ), // Giữ nguyên màu nền tím nhạt để đồng bộ
-      appBar: const CustomAppBar(title: 'Quản Lý Lớp Học'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          children: [
-            // 1. Tiêu đề lớn
-            Text(
-              'DANH SÁCH LỚP HỌC',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 40,
-                shadows: [
-                  const Shadow(
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
-                    color: Colors.black12,
+      appBar: AppHeader(),
+      body: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: SideBarWidget(currentItem: SideBarItem.classManagement),
+          ),
+          Expanded(
+            flex: 6,
+            child: Column(
+              children: [
+                // 1. Tiêu đề lớn
+                Text(
+                  'DANH SÁCH LỚP HỌC',
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 40,
+                    shadows: [
+                      const Shadow(
+                        offset: Offset(0, 2),
+                        blurRadius: 4,
+                        color: Colors.black12,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            const SizedBox(height: 40),
+                const SizedBox(height: 40),
 
-            // 2. Nút Tạo Lớp Mới (Style giống nút tạo bộ đề)
-            _buildCreateButton(),
+                // 2. Nút Tạo Lớp Mới (Style giống nút tạo bộ đề)
+                _buildCreateButton(),
 
-            const SizedBox(height: 40),
+                const SizedBox(height: 40),
 
-            // 3. Grid Danh sách lớp
-            Obx(
-              () => Wrap(
-                spacing: 30,
-                runSpacing: 30,
-                alignment: WrapAlignment.start,
-                children: controller.classList.map((item) {
-                 return StreamBuilder<int>(
-                    stream: controller.getClassStudentCount(item.id), // Gọi hàm đếm
-                    initialData: 0, // Giá trị mặc định khi đang tải
-                    builder: (context, snapshot) {
-                      final count = snapshot.data ?? 0;
-                      return ClassCard(
-                        className: item.className,
-                        subject: item.subject,
-                        schedule: item.schedule,
-                        studentCount: count, 
-                        onEnterClass: () => controller.enterClass(item.id),
-                        onEdit: () async {
-                          final res = await UiDialogs.showClassForm(
-                            title: 'CHỈNH SỬA LỚP',
-                            initialName: item.className,
-                            initialSubject: item.subject,
-                            initialSchedule: item.schedule,
-                          );
-                          if (res != null) {
-                            await Future.delayed(const Duration(milliseconds: 300));
-                            await controller.updateClass(
-                              id: item.id,
-                              className: res['className']!,
-                              subject: res['subject'] ?? '',
-                              schedule: res['schedule'] ?? '',
-                            );
-                          }
-                        },
-                        onDelete: () {
-                          AppDialogs.showConfirm(
-                            title: "Xác nhận xóa",
-                            titleStyle: const TextStyle(
-                              color: Color(0xFF909CC2),
-                              fontWeight: FontWeight.bold,
-                            ),
-                            middleText: "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
-                            textConfirm: "Xóa ngay",
-                            textCancel: "Hủy",
-                            confirmTextColor: Colors.white,
-                            buttonColor: Colors.redAccent,
-                            cancelTextColor: Colors.grey,
-                            onConfirm: () async {
-                              // Wait a bit to ensure dialog has closed before showing loading
-                              await Future.delayed(const Duration(milliseconds: 300));
-                              await controller.deleteClass(item.id);
+                // 3. Grid Danh sách lớp
+                Obx(
+                  () => Wrap(
+                    spacing: 30,
+                    runSpacing: 30,
+                    alignment: WrapAlignment.start,
+                    children: controller.classList.map((item) {
+                      return StreamBuilder<int>(
+                        stream: controller.getClassStudentCount(
+                          item.id,
+                        ), // Gọi hàm đếm
+                        initialData: 0, // Giá trị mặc định khi đang tải
+                        builder: (context, snapshot) {
+                          final count = snapshot.data ?? 0;
+                          return ClassCard(
+                            className: item.className,
+                            subject: item.subject,
+                            schedule: item.schedule,
+                            studentCount: count,
+                            onEnterClass: () => controller.enterClass(item.id),
+                            onEdit: () async {
+                              final res = await UiDialogs.showClassForm(
+                                title: 'CHỈNH SỬA LỚP',
+                                initialName: item.className,
+                                initialSubject: item.subject,
+                                initialSchedule: item.schedule,
+                              );
+                              if (res != null) {
+                                await Future.delayed(
+                                  const Duration(milliseconds: 300),
+                                );
+                                await controller.updateClass(
+                                  id: item.id,
+                                  className: res['className']!,
+                                  subject: res['subject'] ?? '',
+                                  schedule: res['schedule'] ?? '',
+                                );
+                              }
+                            },
+                            onDelete: () {
+                              AppDialogs.showConfirm(
+                                title: "Xác nhận xóa",
+                                titleStyle: const TextStyle(
+                                  color: Color(0xFF909CC2),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                middleText:
+                                    "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
+                                textConfirm: "Xóa ngay",
+                                textCancel: "Hủy",
+                                confirmTextColor: Colors.white,
+                                buttonColor: Colors.redAccent,
+                                cancelTextColor: Colors.grey,
+                                onConfirm: () async {
+                                  // Wait a bit to ensure dialog has closed before showing loading
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 300),
+                                  );
+                                  await controller.deleteClass(item.id);
+                                },
+                              );
                             },
                           );
                         },
                       );
-                    },
-                  );
-                }).toList(),
-              ),
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

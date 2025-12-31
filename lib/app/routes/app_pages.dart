@@ -7,8 +7,6 @@ import 'package:blooket/app/modules/admin/class_management/binding/class_managem
 import 'package:blooket/app/modules/admin/class_management/binding/class_management_detail_binding.dart';
 import 'package:blooket/app/modules/admin/class_management/views/class_management_view.dart';
 import 'package:blooket/app/modules/admin/class_management/views/class_management_detail_view.dart';
-import 'package:blooket/app/modules/admin/dashboard/binding/dashboard_binding.dart';
-import 'package:blooket/app/modules/admin/dashboard/view/dashboard_view.dart';
 import 'package:blooket/app/modules/admin/question_management/binding/question_management_binding.dart';
 import 'package:blooket/app/modules/admin/question_management/binding/question_management_detail_binding.dart';
 import 'package:blooket/app/modules/admin/question_management/views/question_management_detail_view.dart';
@@ -30,38 +28,31 @@ class AppPages {
       binding: AuthBinding(),
     ),
     GetPage(
-      name: AppRoutes.DASHBOARD,
-      page: () => const DashboardView(),
-      binding: DashboardBinding(),
+      name: AppRoutes.STUDENT_MANAGEMENT,
+      page: () => const StudentManagementView(),
+      binding: StudentManagementBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.CLASS_MANAGEMENT,
+      page: () => const ClassManagementView(),
+      binding: ClassManagementBinding(),
       children: [
         GetPage(
-          name: AppRoutes.STUDENT_MANAGEMENT,
-          page: () => const StudentManagementView(),
-          binding: StudentManagementBinding(),
+          name: AppRoutes.CLASS_MANAGEMENT_DETAIL,
+          page: () => const ClassManagementDetailView(),
+          binding: ClassManagementDetailBinding(),
         ),
+      ],
+    ),
+    GetPage(
+      name: AppRoutes.QUESTION_MANAGEMENT,
+      page: () => const QuestionManagementView(),
+      binding: QuestionManagementBinding(),
+      children: [
         GetPage(
-          name: AppRoutes.CLASS_MANAGEMENT,
-          page: () => const ClassManagementView(),
-          binding: ClassManagementBinding(),
-          children: [
-            GetPage(
-              name: AppRoutes.CLASS_MANAGEMENT_DETAIL,
-              page: () => const ClassManagementDetailView(),
-              binding: ClassManagementDetailBinding(),
-            ),
-          ],
-        ),
-        GetPage(
-          name: AppRoutes.QUESTION_MANAGEMENT,
-          page: () => const QuestionManagementView(),
-          binding: QuestionManagementBinding(),
-          children: [
-            GetPage(
-              name: AppRoutes.QUESTION_MANAGEMENT_DETAIL,
-              page: () => const QuestionManagementDetailView(),
-              binding: QuestionManagementDetailBinding(),
-            ),
-          ],
+          name: AppRoutes.QUESTION_MANAGEMENT_DETAIL,
+          page: () => const QuestionManagementDetailView(),
+          binding: QuestionManagementDetailBinding(),
         ),
       ],
     ),

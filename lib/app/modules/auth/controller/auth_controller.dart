@@ -85,7 +85,7 @@ class AuthController extends BaseController {
 
       // 5. Điều hướng dựa trên Role
       if (user.role == 'admin') {
-        Get.offAllNamed(AppRoutes.DASHBOARD);
+        Get.offAllNamed(AppRoutes.QUESTION_MANAGEMENT);
       } else {
         Get.offAllNamed(AppRoutes.EXERCISES);
       }

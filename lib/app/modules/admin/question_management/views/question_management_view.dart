@@ -1,4 +1,8 @@
+import 'package:blooket/app/core/components/appbar/app_header.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
+import 'package:blooket/app/core/components/button/custom_action_button.dart';
+import 'package:blooket/app/core/components/sidebar/side_bar.dart';
+import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:blooket/app/modules/admin/question_management/controller/question_management_controller.dart';
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
@@ -13,133 +17,144 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDCD6F7), // Màu nền tím nhạt
-      appBar: const CustomAppBar(title: 'Quản Lý Câu Hỏi'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCreateButton(),
-
-            const SizedBox(height: 40),
-
-            Obx(
-              () => Wrap(
-                spacing: 30, // Khoảng cách ngang
-                runSpacing: 30, // Khoảng cách dọc
-                alignment: WrapAlignment.start, // Căn giữa
-                children: controller.questionSets.map((item) {
-                    return QuestionSetCard(
-                    name: item.name,
-                    questionCount: item.questionCount,
-                    createdAt: item.createdAt,
-                    // Các hành động
-                    onAssign: () async {
-                      if (controller.classList.isEmpty) {
-                        controller.showWarning("Bạn cần tạo Lớp học trước khi giao bài!");
-                        return;
-                      }
-                      final r = await UiDialogs.showAssignDialog(
-                        classes: controller.classList,
-                        actionColor: controller.actionColor,
-                        title: 'GIAO BÀI TẬP',
-                        questionSetName: item.name,
-                      );
-                      if (r != null) {
-                        final cls = r['class'];
-                        final start = r['start'] as DateTime;
-                        final end = r['end'] as DateTime;
-                        final assignment = AssignmentModel(
-                          id: '',
-                          questionSetId: item.id,
-                          questionSetName: item.name,
-                          classId: cls.id,
-                          className: cls.className,
-                          startDate: start,
-                          endDate: end,
-                          createdAt: DateTime.now(),
+      backgroundColor: const Color(0xFFDCD6F7),
+      appBar: AppHeader(), // Giả sử bạn có widget này
+      body: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: SideBarWidget(currentItem: SideBarItem.question),
+          ),
+          Expanded(
+            flex: 6,
+            child: Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Tài liệu của tôi',
+                    style: TextStyle(
+                      color: AppColor.white, // Đảm bảo bạn đã import AppColor
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomActionButton(
+                      onTap: () async {
+                        final name = await UiDialogs.showQuestionSetName(
+                          title: 'TẠO BỘ ĐỀ MỚI',
                         );
-                        await controller.createAssignment(assignment);
+                        if (name != null) {
+                          await Future.delayed(
+                            const Duration(milliseconds: 300),
+                          );
+                          await controller.createQuestionSet(name);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // === PHẦN SỬA ĐỔI: Dùng GridView ===
+                  Expanded(
+                    // BẮT BUỘC PHẢI CÓ Expanded để GridView cuộn được trong Column
+                    child: Obx(() {
+                      if (controller.questionSets.isEmpty) {
+                        return const Center(child: Text("Chưa có bộ đề nào"));
                       }
-                    },
-                    onEdit: () async {
-                      final name = await UiDialogs.showQuestionSetName(title: 'ĐỔI TÊN BỘ ĐỀ', initial: item.name);
-                      if (name != null) {
-                        await Future.delayed(const Duration(milliseconds: 300));
-                        await controller.updateQuestionSet(item.id, name);
-                      }
-                    },
-                    onDelete: () {
-                      AppDialogs.showConfirm(
-                        title: "Xóa bộ đề?",
-                        titleStyle: TextStyle(color: controller.primaryColor, fontWeight: FontWeight.bold),
-                        middleText: "Hành động này sẽ xóa vĩnh viễn bộ câu hỏi này.",
-                        textConfirm: "Xóa ngay",
-                        textCancel: "Hủy",
-                        confirmTextColor: Colors.white,
-                        buttonColor: Colors.redAccent,
-                        cancelTextColor: Colors.grey,
-                        onConfirm: () async {
-                          await Future.delayed(const Duration(milliseconds: 300));
-                          await controller.deleteSet(item.id);
+
+                      return GridView.builder(
+                        itemCount: controller.questionSets.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent:
+                                  350, // Chiều rộng tối đa của 1 thẻ (sẽ tự chia cột)
+                              childAspectRatio:
+                                  3 /
+                                  2.2, // Tỉ lệ khung hình (Rộng / Cao) ~ 1.36
+                              crossAxisSpacing:
+                                  30, // Khoảng cách ngang giữa các thẻ
+                              mainAxisSpacing:
+                                  30, // Khoảng cách dọc giữa các thẻ
+                            ),
+                        itemBuilder: (context, index) {
+                          final item = controller.questionSets[index];
+                          return QuestionSetCard(
+                            name: item.name,
+                            questionCount: item.questionCount,
+                            createdAt: item.createdAt,
+                            // --- Logic giữ nguyên ---
+                            onAssign: () async {
+                              if (controller.classList.isEmpty) {
+                                controller.showWarning(
+                                  "Bạn cần tạo Lớp học trước khi giao bài!",
+                                );
+                                return;
+                              }
+                              final r = await UiDialogs.showAssignDialog(
+                                classes: controller.classList,
+                                actionColor: controller.actionColor,
+                                title: 'GIAO BÀI TẬP',
+                                questionSetName: item.name,
+                              );
+                              if (r != null) {
+                                final cls = r['class'];
+                                final start = r['start'] as DateTime;
+                                final end = r['end'] as DateTime;
+                                final assignment = AssignmentModel(
+                                  id: '',
+                                  questionSetId: item.id,
+                                  questionSetName: item.name,
+                                  classId: cls.id,
+                                  className: cls.className,
+                                  startDate: start,
+                                  endDate: end,
+                                  createdAt: DateTime.now(),
+                                );
+                                await controller.createAssignment(assignment);
+                              }
+                            },
+                            onEdit: () async {
+                              controller.openDetail(item.id, item.name);
+                            },
+                            onDelete: () {
+                              AppDialogs.showConfirm(
+                                title: "Xóa bộ đề?",
+                                titleStyle: TextStyle(
+                                  color: controller.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                middleText:
+                                    "Hành động này sẽ xóa vĩnh viễn bộ câu hỏi này.",
+                                textConfirm: "Xóa ngay",
+                                textCancel: "Hủy",
+                                confirmTextColor: Colors.white,
+                                buttonColor: Colors.redAccent,
+                                cancelTextColor: Colors.grey,
+                                onConfirm: () async {
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 300),
+                                  );
+                                  await controller.deleteSet(item.id);
+                                },
+                              );
+                            },
+                            onDetail: () =>
+                                controller.openDetail(item.id, item.name),
+                          );
                         },
                       );
-                    },
-                    onDetail: () => controller.openDetail(item.id, item.name),
-                  );
-                }).toList(),
+                    }),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Tách nút Create ra widget riêng cho code gọn
-  Widget _buildCreateButton() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () async {
-          final name = await UiDialogs.showQuestionSetName(title: 'TẠO BỘ ĐỀ MỚI');
-          if (name != null) {
-            await Future.delayed(const Duration(milliseconds: 300));
-            await controller.createQuestionSet(name);
-          }
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 200, // To hơn một chút
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEDBBC6),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                offset: const Offset(0, 4),
-                blurRadius: 8,
-              ),
-            ],
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
-              SizedBox(width: 8),
-              Text(
-                'TẠO MỚI',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }

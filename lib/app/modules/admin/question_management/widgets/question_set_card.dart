@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Cần import để format ngày
+import 'package:intl/intl.dart';
 
 class QuestionSetCard extends StatelessWidget {
   final String name;
   final int questionCount;
   final DateTime createdAt;
-  final VoidCallback onAssign; // Hành động Giao bài
+  final VoidCallback onAssign;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
   final VoidCallback onDetail;
@@ -23,16 +23,16 @@ class QuestionSetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Format ngày: 12/05/2024
     final dateStr = DateFormat('dd/MM/yyyy').format(createdAt);
+
+    // Màu chung cho các nút (Màu hồng chủ đạo của bạn)
+    final Color actionButtonColor = const Color(0xFFEDBBC6);
 
     return GestureDetector(
       onTap: onDetail,
       child: Container(
-        width: 280, // Tăng chiều rộng để thoải mái hiển thị
-        height: 220, // Tăng chiều cao để chứa nút Giao bài
         decoration: BoxDecoration(
-          color: const Color(0xFF909CC2), // Màu nền xanh tím cũ
+          color: const Color(0xFF909CC2),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -43,92 +43,75 @@ class QuestionSetCard extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Header: Tên + Edit/Delete nhỏ
+            // 1. Header: Tên bộ đề
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 8, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  // Menu nhỏ góc phải
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
-                        onPressed: onEdit,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.white70, size: 20),
-                        onPressed: onDelete,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  )
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  height: 1.2,
+                ),
               ),
             ),
-      
-            const Spacer(),
-      
-            // 2. Body: Thông tin số câu & ngày tạo
+
+            const SizedBox(height: 12),
+
+            // 2. Body: Thông tin
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow(Icons.quiz, '$questionCount câu hỏi'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _buildInfoRow(Icons.calendar_month, 'Tạo ngày: $dateStr'),
                 ],
               ),
             ),
-      
+
             const Spacer(),
-      
-            // 3. Footer: Nút GIAO BÀI (Quan trọng)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: ElevatedButton(
-                onPressed: onAssign,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEDBBC6), // Màu hồng nổi bật
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+
+            // 3. Footer: 3 Nút tròn đều nhau
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(
+                  0.05,
+                ), // Nền mờ nhẹ ngăn cách footer
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceEvenly, // Chia đều khoảng cách
+                children: [
+                  _buildCircleButton(
+                    icon: Icons.delete_outline,
+                    color: actionButtonColor,
+                    onTap: onDelete,
+                    tooltip: 'Xóa',
                   ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.send_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'GIAO BÀI',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
+                  _buildCircleButton(
+                    icon: Icons.edit_outlined,
+                    color: actionButtonColor,
+                    onTap: onEdit,
+                    tooltip: 'Sửa',
+                  ),
+                  _buildCircleButton(
+                    icon: Icons.send_rounded,
+                    color: actionButtonColor,
+                    onTap: onAssign,
+                    tooltip: 'Giao bài',
+                  ),
+                ],
               ),
             ),
           ],
@@ -140,13 +123,51 @@ class QuestionSetCard extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white70, size: 18),
-        const SizedBox(width: 10),
-        Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
-        ),
+        Icon(icon, color: Colors.white70, size: 16),
+        const SizedBox(width: 8),
+        Text(text, style: const TextStyle(color: Colors.white, fontSize: 14)),
       ],
+    );
+  }
+
+  // Widget nút tròn được chuẩn hóa
+  Widget _buildCircleButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    String? tooltip,
+  }) {
+    const double buttonSize = 45.0; // Kích thước cố định cho tất cả nút
+
+    return Tooltip(
+      message: tooltip ?? '',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            width: buttonSize,
+            height: buttonSize,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white, // Icon màu trắng
+              size: 22,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
