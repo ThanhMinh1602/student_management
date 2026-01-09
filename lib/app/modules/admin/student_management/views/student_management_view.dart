@@ -1,8 +1,8 @@
 import 'package:blooket/app/core/components/appbar/app_header.dart';
+import 'package:blooket/app/core/components/header/custom_page_header.dart';
 import 'package:blooket/app/core/components/sidebar/side_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
 import 'package:blooket/app/modules/admin/student_management/controllers/student_management_controller.dart';
@@ -29,44 +29,24 @@ class StudentManagementView extends GetView<StudentManagementController> {
               child: Column(
                 children: [
                   // 1. Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'QUẢN LÝ TÀI KHOẢN',
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 32,
-                                  shadows: [
-                                    const Shadow(
-                                      offset: Offset(0, 2),
-                                      blurRadius: 4,
-                                      color: Colors.black12,
-                                    ),
-                                  ],
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Danh sách toàn bộ học viên trong hệ thống',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                      _buildAddButton(),
-                    ],
+                  CustomPageHeader(
+                    title: 'Quản lý tài khoản',
+                    subtitle: 'Danh sách toàn bộ học viên trong hệ thống',
+                    buttonLabel: 'Cấp tài khoản',
+                    onButtonPressed: () async {
+                      final res = await UiDialogs.showAddStudentForm();
+                      if (res != null) {
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        await controller.addStudent(
+                          fullName: res['fullName']!,
+                          username: res['username']!,
+                          role: res['role']!,
+                          password: '123456',
+                        );
+                      }
+                    },
                   ),
-
                   const SizedBox(height: 30),
-
                   // 2. Data Table
                   Container(
                     width: double.infinity,
@@ -159,34 +139,6 @@ class StudentManagementView extends GetView<StudentManagementController> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return ElevatedButton.icon(
-      onPressed: () async {
-        final res = await UiDialogs.showAddStudentForm();
-        if (res != null) {
-          await Future.delayed(const Duration(milliseconds: 300));
-          await controller.addStudent(
-            fullName: res['fullName']!,
-            username: res['username']!,
-            role: res['role']!,
-            password: '123456',
-          );
-        }
-      },
-      icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
-      label: const Text(
-        'CẤP TÀI KHOẢN',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF88D8B0),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 4,
       ),
     );
   }

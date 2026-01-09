@@ -1,4 +1,8 @@
 import 'dart:ui'; // Bắt buộc import để dùng ImageFilter
+import 'package:blooket/app/core/components/button/custom_icon_button.dart';
+import 'package:blooket/app/core/components/header/custom_page_header.dart';
+import 'package:blooket/app/core/constants/app_colors.dart';
+import 'package:blooket/app/modules/admin/question_management/widgets/up_down_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,18 +34,123 @@ class QuestionManagementDetailView
 
             const SizedBox(width: 20), // Khoảng cách giữa 2 cột
             // Cột bên phải: Nội dung chính (Placeholder màu hồng)
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.pink,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
+            Expanded(flex: 2, child: _buildRightWidget()),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRightWidget() {
+    return Column(
+      children: [
+        CustomPageHeader(
+          extraWidget: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+            ),
+            child: const Text(
+              '15 câu hỏi',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          ),
+          subtitle: 'Quản lý các câu hỏi trong bộ đề',
+          buttonLabel: 'Thêm câu hỏi mới',
+          onButtonPressed: () {
+            // Logic thêm câu hỏi mới
+          },
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: ListView.separated(
+            itemCount: 3,
+            itemBuilder: (context, index) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  // Căn giữa theo chiều dọc để nút Up/Down nằm giữa
+                  spacing: 8.0,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // --- PHẦN SỬA LỖI Ở ĐÂY ---
+                    // Bọc Column trong Expanded để nó chiếm hết chiều ngang còn lại
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        spacing: 8,
+                        // Kéo dãn các nút con cho bằng chiều ngang
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 1. Nút Edit: Bỏ Expanded bao ngoài, để nó tự tính chiều cao
+                          CustomIconButton(
+                            icon: Icons.edit_outlined,
+                            iconColor: Colors.white,
+                            backgroundColor: AppColor.pink,
+                            label: 'Edit', // Có label nên nút sẽ dài ra
+                            onTap: () {
+                              // Logic edit
+                            },
+                          ),
+
+                          // 2. Hàng nút Delete/Copy
+                          Row(
+                            spacing: 8,
+                            children: [
+                              // Dùng Expanded để 2 nút này chia đều 50-50 chiều rộng
+                              Expanded(
+                                child: CustomIconButton(
+                                  icon: Icons.delete_outline,
+                                  iconColor: Colors.white,
+                                  backgroundColor: AppColors.primary,
+                                  onTap: () {
+                                    // Logic xóa
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: CustomIconButton(
+                                  icon: Icons.copy_outlined,
+                                  iconColor: Colors.white,
+                                  backgroundColor: AppColors.primary,
+                                  onTap: () {
+                                    // Logic copy
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Câu hỏi số ${index + 1}"),
+                          SizedBox(height: 8),
+                          Text(
+                            'Nội dung câu hỏi sẽ hiển thị ở đây.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    UpDownControls(onUp: () {}, onDown: () {}),
+                  ],
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+          ),
+        ),
+      ],
     );
   }
 

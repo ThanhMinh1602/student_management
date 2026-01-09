@@ -1,12 +1,12 @@
 import 'package:blooket/app/core/components/appbar/app_header.dart';
+import 'package:blooket/app/core/components/header/custom_page_header.dart';
 import 'package:blooket/app/core/components/sidebar/side_bar.dart';
 import 'package:blooket/app/modules/admin/class_management/controller/class_management_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../widgets/class_card.dart'; // Import thẻ lớp mới
+import '../widgets/class_card.dart';
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
-import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 
 class ClassManagementView extends GetView<ClassManagementController> {
   const ClassManagementView({super.key});
@@ -14,9 +14,7 @@ class ClassManagementView extends GetView<ClassManagementController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFDCD6F7,
-      ), // Giữ nguyên màu nền tím nhạt để đồng bộ
+      backgroundColor: const Color(0xFFDCD6F7),
       appBar: AppHeader(),
       body: Row(
         children: [
@@ -26,154 +24,124 @@ class ClassManagementView extends GetView<ClassManagementController> {
           ),
           Expanded(
             flex: 6,
-            child: Column(
-              children: [
-                // 1. Tiêu đề lớn
-                Text(
-                  'DANH SÁCH LỚP HỌC',
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 40,
-                    shadows: [
-                      const Shadow(
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
-                        color: Colors.black12,
-                      ),
-                    ],
+            child: Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Column(
+                children: [
+                  // 1. Tiêu đề lớn
+                  CustomPageHeader(
+                    title: 'Quản lý lớp học',
+                    subtitle: 'Danh sách lớp học hiện có',
+                    buttonLabel: 'Thêm mới',
+                    onButtonPressed: () async {
+                      final res = await UiDialogs.showClassForm();
+                      if (res != null) {
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        await controller.createClass(
+                          className: res['className']!,
+                          subject: res['subject'] ?? '',
+                          schedule: res['schedule'] ?? '',
+                        );
+                      }
+                    },
                   ),
-                ),
 
-                const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-                // 2. Nút Tạo Lớp Mới (Style giống nút tạo bộ đề)
-                _buildCreateButton(),
+                  // 2. GridView Builder
+                  // BẮT BUỘC: Dùng Expanded để GridView chiếm hết phần còn lại của Column
+                  Expanded(
+                    child: Obx(() {
+                      // Nếu list rỗng thì hiện thông báo (Optional)
+                      if (controller.classList.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "Chưa có lớp học nào",
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                        );
+                      }
+                      return GridView.builder(
+                        // Tối ưu hiệu năng thay vì Wrap
+                        itemCount: controller.classList.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent:
+                                  400, // Chiều rộng tối đa của mỗi thẻ (pixel)
+                              childAspectRatio:
+                                  1.5, // Tỷ lệ khung hình (Rộng / Cao). Chỉnh số này để thẻ không bị méo.
+                              crossAxisSpacing: 30, // Khoảng cách ngang
+                              mainAxisSpacing: 30, // Khoảng cách dọc
+                            ),
+                        itemBuilder: (context, index) {
+                          final item = controller.classList[index];
 
-                const SizedBox(height: 40),
-
-                // 3. Grid Danh sách lớp
-                Obx(
-                  () => Wrap(
-                    spacing: 30,
-                    runSpacing: 30,
-                    alignment: WrapAlignment.start,
-                    children: controller.classList.map((item) {
-                      return StreamBuilder<int>(
-                        stream: controller.getClassStudentCount(
-                          item.id,
-                        ), // Gọi hàm đếm
-                        initialData: 0, // Giá trị mặc định khi đang tải
-                        builder: (context, snapshot) {
-                          final count = snapshot.data ?? 0;
-                          return ClassCard(
-                            className: item.className,
-                            subject: item.subject,
-                            schedule: item.schedule,
-                            studentCount: count,
-                            onEnterClass: () => controller.enterClass(item.id),
-                            onEdit: () async {
-                              final res = await UiDialogs.showClassForm(
-                                title: 'CHỈNH SỬA LỚP',
-                                initialName: item.className,
-                                initialSubject: item.subject,
-                                initialSchedule: item.schedule,
-                              );
-                              if (res != null) {
-                                await Future.delayed(
-                                  const Duration(milliseconds: 300),
-                                );
-                                await controller.updateClass(
-                                  id: item.id,
-                                  className: res['className']!,
-                                  subject: res['subject'] ?? '',
-                                  schedule: res['schedule'] ?? '',
-                                );
-                              }
-                            },
-                            onDelete: () {
-                              AppDialogs.showConfirm(
-                                title: "Xác nhận xóa",
-                                titleStyle: const TextStyle(
-                                  color: Color(0xFF909CC2),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                middleText:
-                                    "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
-                                textConfirm: "Xóa ngay",
-                                textCancel: "Hủy",
-                                confirmTextColor: Colors.white,
-                                buttonColor: Colors.redAccent,
-                                cancelTextColor: Colors.grey,
-                                onConfirm: () async {
-                                  // Wait a bit to ensure dialog has closed before showing loading
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 300),
+                          // StreamBuilder đặt trong này vẫn hoạt động tốt
+                          return StreamBuilder<int>(
+                            stream: controller.getClassStudentCount(item.id),
+                            initialData: 0,
+                            builder: (context, snapshot) {
+                              final count = snapshot.data ?? 0;
+                              return ClassCard(
+                                className: item.className,
+                                subject: item.subject,
+                                schedule: item.schedule,
+                                studentCount: count,
+                                onEnterClass: () =>
+                                    controller.enterClass(item.id),
+                                onEdit: () async {
+                                  final res = await UiDialogs.showClassForm(
+                                    title: 'CHỈNH SỬA LỚP',
+                                    initialName: item.className,
+                                    initialSubject: item.subject,
+                                    initialSchedule: item.schedule,
                                   );
-                                  await controller.deleteClass(item.id);
+                                  if (res != null) {
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 300),
+                                    );
+                                    await controller.updateClass(
+                                      id: item.id,
+                                      className: res['className']!,
+                                      subject: res['subject'] ?? '',
+                                      schedule: res['schedule'] ?? '',
+                                    );
+                                  }
+                                },
+                                onDelete: () {
+                                  AppDialogs.showConfirm(
+                                    title: "Xác nhận xóa",
+                                    titleStyle: const TextStyle(
+                                      color: Color(0xFF909CC2),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    middleText:
+                                        "Bạn có chắc muốn xóa lớp học này không?\nDữ liệu không thể khôi phục.",
+                                    textConfirm: "Xóa ngay",
+                                    textCancel: "Hủy",
+                                    confirmTextColor: Colors.white,
+                                    buttonColor: Colors.redAccent,
+                                    cancelTextColor: Colors.grey,
+                                    onConfirm: () async {
+                                      await Future.delayed(
+                                        const Duration(milliseconds: 300),
+                                      );
+                                      await controller.deleteClass(item.id);
+                                    },
+                                  );
                                 },
                               );
                             },
                           );
                         },
                       );
-                    }).toList(),
+                    }),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCreateButton() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () async {
-          final res = await UiDialogs.showClassForm();
-          if (res != null) {
-            await Future.delayed(const Duration(milliseconds: 300));
-            await controller.createClass(
-              className: res['className']!,
-              subject: res['subject'] ?? '',
-              schedule: res['schedule'] ?? '',
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 220, // To hơn xíu để chứa chữ dài hơn
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF88D8B0), // Màu xanh Mint đồng bộ với thẻ
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                offset: const Offset(0, 4),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_home_work_rounded, color: Colors.white, size: 28),
-              SizedBox(width: 8),
-              Text(
-                'THÊM LỚP MỚI',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

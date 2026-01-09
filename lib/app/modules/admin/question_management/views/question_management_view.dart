@@ -1,6 +1,7 @@
 import 'package:blooket/app/core/components/appbar/app_header.dart';
 import 'package:blooket/app/core/components/appbar/custom_app_bar.dart';
 import 'package:blooket/app/core/components/button/custom_action_button.dart';
+import 'package:blooket/app/core/components/header/custom_page_header.dart';
 import 'package:blooket/app/core/components/sidebar/side_bar.dart';
 import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:blooket/app/modules/admin/question_management/controller/question_management_controller.dart';
@@ -32,31 +33,21 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    'Tài liệu của tôi',
-                    style: TextStyle(
-                      color: AppColor.white, // Đảm bảo bạn đã import AppColor
-                      fontSize: 50,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  CustomPageHeader(
+                    title: 'Tài liệu của tôi',
+                    subtitle: 'Danh sách bộ đề câu hỏi hiện có',
+                    buttonLabel: 'Tạo bộ đề mới',
+                    onButtonPressed: () async {
+                      final name = await UiDialogs.showQuestionSetName(
+                        title: 'TẠO BỘ ĐỀ MỚI',
+                      );
+                      if (name != null) {
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        await controller.createQuestionSet(name);
+                      }
+                    },
                   ),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: CustomActionButton(
-                      onTap: () async {
-                        final name = await UiDialogs.showQuestionSetName(
-                          title: 'TẠO BỘ ĐỀ MỚI',
-                        );
-                        if (name != null) {
-                          await Future.delayed(
-                            const Duration(milliseconds: 300),
-                          );
-                          await controller.createQuestionSet(name);
-                        }
-                      },
-                    ),
-                  ),
+
                   const SizedBox(height: 40),
 
                   // === PHẦN SỬA ĐỔI: Dùng GridView ===
