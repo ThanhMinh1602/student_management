@@ -1,70 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:blooket/app/core/constants/app_color.dart'; // Import AppColor của bạn
+import 'package:blooket/app/core/constants/app_color.dart';
 
 class BorderedStatWidget extends StatelessWidget {
   final String title;
   final String? value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   const BorderedStatWidget({
     super.key,
     required this.title,
     this.value,
     this.icon = Icons.access_time,
-    this.color = AppColor.white, // Mặc định dùng AppColor.white
+    this.color = AppColor.white,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: color, width: 3.0),
-        borderRadius: BorderRadius.circular(
-          8.0,
-        ), // Thêm bo góc nhẹ cho khung ngoài nếu cần
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min, // Co lại vừa nội dung
-        children: [
-          // 1. Icon
-          Icon(icon, color: color, size: 35),
-
-          const SizedBox(width: 8), // Khoảng cách giữa Icon và Text
-          // 2. Title (Time limit)
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.normal,
-              height: 1.2, // Giãn dòng cho text nhiều dòng đẹp hơn
-            ),
+    return InkWell(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all(color: color, width: 3.0),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          if (value != null) ...[
-            const SizedBox(width: 12), // Khoảng cách giữa Text và Value
-            // 3. Value Box (30s)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 20.0,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(color: color, width: 3.0),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                value!,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 35),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: color,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
+                  height: 1.2,
                 ),
               ),
-            ),
-          ],
-        ],
+              if (value != null) ...[
+                const SizedBox(width: 12),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 20.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(color: color, width: 3.0),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Text(
+                    value!,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
