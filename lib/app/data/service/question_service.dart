@@ -5,9 +5,11 @@ import 'package:blooket/app/data/model/question_set_model.dart';
 
 class QuestionService {
   final _firestore = FirebaseFirestore.instance;
-  
+
   // Reference tới collection cha
-  final CollectionReference _setRef = FirebaseFirestore.instance.collection('question_sets');
+  final CollectionReference _setRef = FirebaseFirestore.instance.collection(
+    'question_sets',
+  );
 
   // --- 1. QUẢN LÝ BỘ ĐỀ (CHA) ---
 
@@ -16,7 +18,11 @@ class QuestionService {
     return _setRef
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => QuestionSetModel.fromSnapshot(doc)).toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => QuestionSetModel.fromSnapshot(doc))
+              .toList(),
+        );
   }
 
   // Thêm bộ đề mới
@@ -37,9 +43,7 @@ class QuestionService {
   // Sửa tên bộ đề
   Future<bool> updateQuestionSet(String id, String newName) async {
     try {
-      await _setRef.doc(id).update({
-        'name': newName,
-      });
+      await _setRef.doc(id).update({'name': newName});
       return true;
     } catch (e) {
       print("Error updating set: $e");
@@ -82,23 +86,40 @@ class QuestionService {
         .collection('questions') // Vào sub-collection
         .orderBy('createdAt', descending: false) // Sắp xếp theo ngày tạo
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => QuestionModel.fromSnapshot(doc)).toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => QuestionModel.fromSnapshot(doc))
+              .toList(),
+        );
   }
 
-  // Thêm câu hỏi vào Sub-collection
+  // Thêm câu hỏi mới trong Sub-collection - new
   Future<bool> addQuestion(QuestionModel question) async {
     try {
-      // 1. Thêm câu hỏi vào sub-collection 'questions' của bộ đề 'setId'
-      await _setRef
+      final batch = FirebaseFirestore.instance.batch();
+
+      // Tham chiếu đến document câu hỏi mới
+      final questionDocRef = _setRef
           .doc(question.setId)
           .collection('questions')
-          .add(question.toJson());
-      
-      // 2. Update lại số lượng câu hỏi ở bộ đề cha (Question Set)
-      await _setRef.doc(question.setId).update({
-        'questionCount': FieldValue.increment(1)
+          .doc(question.id);
+
+      // Tham chiếu đến bộ đề (để tăng count)
+      final setDocRef = _setRef.doc(question.setId);
+
+      // 1. Thêm lệnh set câu hỏi vào batch
+      batch.set(questionDocRef, question.toJson());
+
+      // 2. Thêm lệnh update count vào batch
+      batch.update(setDocRef, {
+        'questionCount': FieldValue.increment(1),
+        // Có thể update thêm updatedAt cho bộ đề nếu cần
+        'updatedAt': FieldValue.serverTimestamp(),
       });
-      
+
+      // 3. Thực thi tất cả cùng lúc
+      await batch.commit();
+
       return true;
     } catch (e) {
       print("Add question error: $e");
@@ -110,17 +131,13 @@ class QuestionService {
   Future<bool> deleteQuestion(String questionId, String setId) async {
     try {
       // 1. Tìm đúng đường dẫn để xóa
-      await _setRef
-          .doc(setId)
-          .collection('questions')
-          .doc(questionId)
-          .delete();
-      
+      await _setRef.doc(setId).collection('questions').doc(questionId).delete();
+
       // 2. Giảm số lượng câu hỏi ở bộ đề cha
       await _setRef.doc(setId).update({
-        'questionCount': FieldValue.increment(-1)
+        'questionCount': FieldValue.increment(-1),
       });
-      
+
       return true;
     } catch (e) {
       print("Delete question error: $e");
@@ -137,7 +154,7 @@ class QuestionService {
           .collection('questions')
           .doc(question.id)
           .update(question.toJson());
-          
+
       return true;
     } catch (e) {
       print("Update error: $e");

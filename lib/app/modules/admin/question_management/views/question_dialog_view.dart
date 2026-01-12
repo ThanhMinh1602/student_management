@@ -216,7 +216,19 @@ class _QuestionDialogViewState extends State<QuestionDialogView> {
           BorderedStatWidget(
             title: 'Save',
             icon: Icons.check_circle_outline,
-            onTap: () {},
+            onTap: () {
+              final question = QuestionModel(
+                setId: widget.setId,
+                type: selectedType,
+                content: contentCtrl.text,
+                timeLimit: timeLimit,
+                isRandom: isRandom,
+                id: '',
+                answers: [],
+              );
+              widget.onSave(question);
+              Get.back();
+            },
           ),
         ],
       ),

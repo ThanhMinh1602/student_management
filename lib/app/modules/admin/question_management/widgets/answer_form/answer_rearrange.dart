@@ -2,21 +2,30 @@ import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:flutter/material.dart';
 
 class AnswerRearrange extends StatefulWidget {
-  const AnswerRearrange({super.key});
+  // Callback trả về danh sách từ theo thứ tự hiện tại
+  final Function(List<String> orderedWords)? onChanged;
+  final List<String>? initialWords;
+
+  const AnswerRearrange({super.key, this.onChanged, this.initialWords});
 
   @override
   State<AnswerRearrange> createState() => _AnswerRearrangeState();
 }
 
 class _AnswerRearrangeState extends State<AnswerRearrange> {
-  // Danh sách các từ (Chip) đang hiển thị
   List<String> words = [];
-
-  // Controller cho ô nhập câu dài
   final TextEditingController _sentenceController = TextEditingController();
-
-  // Biến check xem đang kéo hay không
   bool _isDragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialWords != null && widget.initialWords!.isNotEmpty) {
+      words = List.from(widget.initialWords!);
+      // Tự điền vào input để user dễ sửa (nối lại thành chuỗi)
+      _sentenceController.text = words.join(" ");
+    }
+  }
 
   @override
   void dispose() {
@@ -24,29 +33,28 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
     super.dispose();
   }
 
-  // --- LOGIC XỬ LÝ CHÍNH (ĐÃ SỬA) ---
+  // --- LOGIC ---
 
-  // 1. Tách câu thành các từ (Hỗ trợ ngoặc [])
+  void _notifyChange() {
+    if (widget.onChanged != null) {
+      widget.onChanged!(words);
+    }
+  }
+
   void _generateChips() {
     final text = _sentenceController.text.trim();
     if (text.isEmpty) return;
 
     List<String> tempWords = [];
-
-    // Regex: Bắt cụm trong [] HOẶC bắt từ đơn
+    // Regex: Bắt cụm trong [] HOẶC bắt từ đơn không chứa khoảng trắng
     final RegExp regExp = RegExp(r'\[([^\]]*)\]|(\S+)');
-
     final matches = regExp.allMatches(text);
 
     for (final match in matches) {
       if (match.group(1) != null) {
-        // Lấy nội dung trong ngoặc []
         String content = match.group(1)!.trim();
-        if (content.isNotEmpty) {
-          tempWords.add(content);
-        }
+        if (content.isNotEmpty) tempWords.add(content);
       } else {
-        // Lấy từ đơn
         tempWords.add(match.group(0)!);
       }
     }
@@ -54,16 +62,16 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
     setState(() {
       words = tempWords;
     });
+    _notifyChange();
   }
 
-  // 2. Xáo trộn ngẫu nhiên (Shuffle)
   void _shuffleChips() {
     setState(() {
       words.shuffle();
     });
+    _notifyChange();
   }
 
-  // 3. Đổi chỗ 2 chip (Swap)
   void _onSwap(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return;
     setState(() {
@@ -71,118 +79,163 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
       words[oldIndex] = words[newIndex];
       words[newIndex] = temp;
     });
+    _notifyChange();
   }
+
+  // --- UI BUILDER ---
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // --- PHẦN 1: KHU VỰC HIỂN THỊ CHIP (Ở TRÊN) ---
-        Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(minHeight: 120),
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+        // 1. Khu vực hiển thị Chip (Result Area)
+        _buildChipDisplayArea(),
+
+        const SizedBox(height: 20),
+
+        // 2. Khu vực nhập liệu (Input Area)
+        _buildInputArea(),
+      ],
+    );
+  }
+
+  Widget _buildChipDisplayArea() {
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 120),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: words.isEmpty
-              ? Center(
-                  child: Text(
-                    "Nhập câu (dùng [ ] để gom cụm) và bấm 'Tách từ'",
+        ],
+      ),
+      child: words.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.text_fields,
+                    size: 40,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Nhập câu bên dưới (dùng [ ] để gom cụm)\nvà bấm 'Tách từ'",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey.shade400,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                )
-              : Wrap(
-                  spacing: 12.0,
-                  runSpacing: 12.0,
-                  children: List.generate(words.length, (index) {
-                    return _buildDraggableChip(index);
-                  }),
-                ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // --- PHẦN 2: KHU VỰC NHẬP LIỆU (Ở DƯỚI) ---
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.blueGrey.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                "Nhập câu hoàn chỉnh:",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _sentenceController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: "Ví dụ: Flutter [rất tuyệt] vời...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.content_cut, color: Colors.white),
-                      label: const Text("Tách từ (Tạo Chip)"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: _generateChips,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.shuffle, color: AppColor.primary),
-                      label: const Text("Xáo trộn"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColor.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: AppColor.primary),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: words.isNotEmpty ? _shuffleChips : null,
-                    ),
-                  ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ],
+            )
+          // SelectionContainer.disabled quan trọng cho Web để tránh bôi đen text khi kéo
+          : SelectionContainer.disabled(
+              child: Wrap(
+                spacing: 12.0,
+                runSpacing: 12.0,
+                alignment: WrapAlignment.start,
+                children: List.generate(words.length, (index) {
+                  return _buildDraggableChip(index);
+                }),
+              ),
+            ),
     );
   }
 
-  // --- WIDGET CHIP KÉO THẢ ---
+  Widget _buildInputArea() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blueGrey.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            "Nhập câu hoàn chỉnh:",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _sentenceController,
+            maxLines: 3,
+            style: const TextStyle(fontSize: 15),
+            decoration: InputDecoration(
+              hintText: "Ví dụ: Flutter [rất tuyệt] vời...",
+              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderSide: BorderSide(color: AppColor.primary),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.all(12),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.content_cut, size: 18),
+                  label: const Text("Tách từ"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 1,
+                  ),
+                  onPressed: _generateChips,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.shuffle, size: 18),
+                  label: const Text("Xáo trộn"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColor.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: AppColor.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: words.isNotEmpty ? _shuffleChips : null,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDraggableChip(int index) {
     final word = words[index];
 
@@ -193,18 +246,22 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
         final isHovering = candidateData.isNotEmpty;
 
         return MouseRegion(
-          cursor: SystemMouseCursors.grab,
+          // Đổi con trỏ chuột: nắm tay khi kéo, bàn tay mở khi hover
+          cursor: _isDragging
+              ? SystemMouseCursors.grabbing
+              : SystemMouseCursors.grab,
           child: Draggable<int>(
             data: index,
             onDragStarted: () => setState(() => _isDragging = true),
             onDragEnd: (_) => setState(() => _isDragging = false),
 
+            // 1. Feedback: Widget đi theo con trỏ chuột
             feedback: Material(
               color: Colors.transparent,
               child: Opacity(
-                opacity: 0.8,
+                opacity: 0.9,
                 child: Transform.scale(
-                  scale: 1.1,
+                  scale: 1.05, // Phóng to nhẹ tạo cảm giác đang nhấc lên
                   child: _buildChipUI(
                     word,
                     color: AppColor.pink,
@@ -213,12 +270,16 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
                 ),
               ),
             ),
+
+            // 2. ChildWhenDragging: Widget ở vị trí cũ khi đang kéo đi (làm mờ)
             childWhenDragging: Opacity(
               opacity: 0.3,
-              child: _buildChipUI(word, color: Colors.grey),
+              child: _buildChipUI(word, color: Colors.grey.shade500),
             ),
+
+            // 3. Child: Widget hiển thị bình thường
             child: isHovering
-                ? _buildSwapTargetUI(word)
+                ? _buildSwapTargetUI(word) // Hiệu ứng khi sắp thả vào đây
                 : _buildChipUI(word, color: AppColor.primary),
           ),
         );
@@ -226,6 +287,7 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
     );
   }
 
+  // UI Chip cơ bản
   Widget _buildChipUI(
     String label, {
     required Color color,
@@ -235,50 +297,96 @@ class _AnswerRearrangeState extends State<AnswerRearrange> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+          8,
+        ), // Bo góc vừa phải trông hiện đại hơn
         boxShadow: isFeedback
             ? [
-                const BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                BoxShadow(
+                  color: AppColor.pink.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 8),
                 ),
               ]
-            : [],
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 2,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Text(
         label,
         style: const TextStyle(
           color: Colors.white,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           fontSize: 16,
         ),
       ),
     );
   }
 
+  // UI khi có item khác kéo đè lên (Drop Target)
   Widget _buildSwapTargetUI(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColor.pink, width: 2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.swap_horiz, size: 20, color: AppColor.pink),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColor.pink,
-              fontWeight: FontWeight.bold,
-            ),
+    return DottedBorderContainer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColor.pink.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: AppColor.pink.withOpacity(0.5),
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+// Widget phụ để vẽ viền nét đứt (Dotted Border) cho Target Swap
+class DottedBorderContainer extends StatelessWidget {
+  final Widget child;
+  const DottedBorderContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _DottedBorderPainter(), child: child);
+  }
+}
+
+class _DottedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColor.pink
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          const Radius.circular(8),
+        ),
+      );
+
+    // Vẽ nét đứt thủ công đơn giản
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double distance = 0.0;
+
+    // Lưu ý: Để vẽ nét đứt bo góc hoàn hảo cần path metric phức tạp
+    // Ở đây vẽ viền liền mờ làm nền cho đơn giản và hiệu năng cao
+    paint.color = AppColor.pink.withOpacity(0.5);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

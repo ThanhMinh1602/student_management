@@ -1,75 +1,127 @@
 import 'package:blooket/app/core/components/button/custom_button.dart';
-import 'package:blooket/app/core/components/text_field/custom_text_field.dart';
-import 'package:blooket/app/modules/admin/question_management/widgets/answer_form_widget.dart';
+import 'package:blooket/app/core/constants/app_color.dart'; // Đảm bảo import đúng
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
-import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 
 class AnswerTyping extends StatefulWidget {
-  const AnswerTyping({super.key});
+  // Callback trả dữ liệu về cha để lưu
+  final Function(List<String> answers)? onChanged;
+
+  const AnswerTyping({super.key, this.onChanged});
 
   @override
   State<AnswerTyping> createState() => _AnswerTypingState();
 }
 
 class _AnswerTypingState extends State<AnswerTyping> {
-  final List<TextEditingController> _controllers = [];
+  // Pair: Controller + FocusNode cho từng dòng
+  final List<({TextEditingController ctrl, FocusNode node})> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _controllers.add(TextEditingController());
+    _addNewLine(); // Khởi tạo dòng đầu tiên
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
+    for (var item in _items) {
+      item.ctrl.dispose();
+      item.node.dispose();
     }
     super.dispose();
   }
 
-  void _addAnswer() {
-    if (_controllers.isNotEmpty && _controllers.last.text.trim().isEmpty) {
-      Get.showSnackbar(
-        GetSnackBar(
-          title: 'Lỗi',
-          message: 'Vui lòng nhập câu trả lời trước khi thêm đáp án mới.',
-          duration: const Duration(seconds: 1),
-          backgroundColor: Colors.redAccent,
-          snackPosition: SnackPosition.TOP,
-        ),
-      );
+  // Bắn dữ liệu ra ngoài
+  void _notifyChange() {
+    if (widget.onChanged != null) {
+      final answers = _items
+          .map((e) => e.ctrl.text.trim())
+          .where((text) => text.isNotEmpty) // Chỉ lấy các ô có dữ liệu
+          .toList();
+      widget.onChanged!(answers);
+    }
+    // Cập nhật lại UI để check trạng thái nút Add
+    setState(() {});
+  }
+
+  void _addNewLine() {
+    // Validate: Nếu dòng cuối cùng đang trống thì không cho thêm
+    if (_items.isNotEmpty && _items.last.ctrl.text.trim().isEmpty) {
+      _items.last.node.requestFocus(); // Focus lại vào ô trống đó
       return;
     }
 
+    final controller = TextEditingController();
+    final focusNode = FocusNode();
+
+    // Lắng nghe thay đổi text
+    controller.addListener(_notifyChange);
+
     setState(() {
-      _controllers.add(TextEditingController());
+      _items.add((ctrl: controller, node: focusNode));
+    });
+
+    // Auto focus vào dòng mới sau khi UI render xong
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) focusNode.requestFocus();
     });
   }
 
-  void _removeAnswer(int index) {
+  void _removeLine(int index) {
+    // Không cho xóa nếu chỉ còn 1 dòng
+    if (_items.length <= 1) return;
+
+    final item = _items[index];
+
+    // Clean resource
+    item.ctrl.dispose();
+    item.node.dispose();
+
     setState(() {
-      _controllers[index].dispose();
-      _controllers.removeAt(index);
+      _items.removeAt(index);
     });
+
+    _notifyChange();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnswerFormWidget(
+    // Check xem có được phép thêm dòng mới không (dòng cuối có text chưa)
+    final canAddMore =
+        _items.isEmpty || _items.last.ctrl.text.trim().isNotEmpty;
+
+    return Container(
+      // Padding nên để cha quản lý, nhưng đây là widget con nên padding nội bộ nhỏ
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Nhập câu trả lời', style: TextStyle(fontSize: 18.0)),
-          const SizedBox(height: 10.0),
+          const Text(
+            'Nhập các câu trả lời chính xác:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Người chơi nhập đúng một trong các đáp án dưới đây sẽ được tính điểm.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 16.0),
 
+          // Danh sách input
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _controllers.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10.0),
+            itemCount: _items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12.0),
             itemBuilder: (context, index) {
               return _buildAnswerInput(index);
             },
@@ -77,33 +129,111 @@ class _AnswerTypingState extends State<AnswerTyping> {
 
           const SizedBox(height: 20.0),
 
-          CustomButton(text: 'Thêm đáp án đúng', onPressed: _addAnswer),
+          // Nút thêm
+          Center(
+            child: SizedBox(
+              width: 200, // Fixed width cho đẹp trên web
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Thêm đáp án khác'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: canAddMore
+                      ? AppColor.primary
+                      : Colors.grey.shade300,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: canAddMore ? 2 : 0,
+                ),
+                // Disable nút nếu chưa nhập xong dòng trên
+                onPressed: canAddMore ? _addNewLine : null,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildAnswerInput(int index) {
-    bool isFirstItem = index == 0;
+    final item = _items[index];
+    // Chỉ cho phép xóa nếu có nhiều hơn 1 dòng
+    final isRemovable = _items.length > 1;
 
     return Row(
       children: [
-        Expanded(
-          child: CustomTextField(
-            controller: _controllers[index],
-            labelText: 'Câu trả lời đúng ${index + 1}',
+        // Số thứ tự (Visual guide)
+        Container(
+          width: 30,
+          alignment: Alignment.center,
+          child: Text(
+            "${index + 1}.",
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
 
-        const SizedBox(width: 10.0),
+        const SizedBox(width: 8),
 
-        isFirstItem
-            ? const SizedBox(width: 48.0)
-            : IconButton(
-                onPressed: () => _removeAnswer(index),
-                icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
-                tooltip: 'Xóa đáp án này',
+        // Input Field
+        Expanded(
+          child: TextField(
+            controller: item.ctrl,
+            focusNode: item.node,
+            // Sự kiện Enter -> Thêm dòng mới (UX cho Web)
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) {
+              // Nếu là dòng cuối cùng thì enter sẽ tạo dòng mới
+              if (index == _items.length - 1) {
+                _addNewLine();
+              }
+            },
+            decoration: InputDecoration(
+              hintText: 'Nhập câu trả lời...',
+              hintStyle: TextStyle(color: Colors.grey.shade400),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
               ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColor.primary, width: 2),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 12.0),
+
+        // Nút xóa
+        // Dùng Opacity để giữ khoảng cách layout ngay cả khi ẩn
+        SizedBox(
+          width: 40,
+          child: isRemovable
+              ? IconButton(
+                  onPressed: () => _removeLine(index),
+                  icon: const Icon(Icons.delete_outline),
+                  color: Colors.red.shade400,
+                  tooltip: 'Xóa dòng này',
+                  hoverColor: Colors.red.withOpacity(0.1),
+                  splashRadius: 20,
+                )
+              : null, // Null sẽ không hiện gì, layout vẫn cân đối nhờ SizedBox width 40
+        ),
       ],
     );
   }

@@ -1,31 +1,40 @@
 import 'package:blooket/app/data/enum/question_type.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class QuestionModel {
   final String id;
   final String setId;
   final QuestionType type;
-  final String content; 
-  
-  final List<String>? options; // Null nếu không phải trắc nghiệm
-  final String correctAnswer;  // Đáp án text
-  final List<String>? correctOrder; // Đáp án list (cho sắp xếp)
-  
-  final DateTime? createdAt; 
+  final String content;
+
+  // Cấu hình hiển thị
+  final int timeLimit; // Thời gian (giây)
+  final bool isRandom; // Có xáo trộn đáp án không? (Cho MC/Rearrange)
+
+  // Dữ liệu đáp án
+  final List<String>? options; // Danh sách lựa chọn (Cho Multiple Choice)
+
+  // QUAN TRỌNG: Đổi String thành List để hỗ trợ Typing (nhiều đáp án đúng)
+  // - Multiple Choice / TrueFalse: List chứa 1 phần tử đúng.
+  // - Typing: List chứa nhiều biến thể chấp nhận được.
+  // - Rearrange: Có thể dùng cái này hoặc dùng correctOrder riêng.
+  final List<String> answers;
+
+  final DateTime? createdAt;
 
   QuestionModel({
     required this.id,
     required this.setId,
     required this.type,
     required this.content,
+    required this.timeLimit, // Bắt buộc
+    this.isRandom = false, // Mặc định false
     this.options,
-    required this.correctAnswer,
-    this.correctOrder,
+    required this.answers, // Bắt buộc
     this.createdAt,
   });
 
-  // Convert từ Firebase về Model
+  // --- 1. FROM SNAPSHOT (Firebase -> App) ---
   factory QuestionModel.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
@@ -37,75 +46,62 @@ class QuestionModel {
         orElse: () => QuestionType.multipleChoice,
       ),
       content: data['content'] ?? '',
-      options: data['options'] != null ? List<String>.from(data['options']) : null,
-      correctAnswer: data['correctAnswer'] ?? '',
-      correctOrder: data['correctOrder'] != null ? List<String>.from(data['correctOrder']) : null,
+
+      // Xử lý TimeLimit & Random
+      timeLimit: data['timeLimit'] ?? 30, // Mặc định 30s nếu null
+      isRandom: data['isRandom'] ?? false,
+
+      // Xử lý List an toàn (tránh lỗi cast)
+      options: data['options'] != null
+          ? List<String>.from(data['options'])
+          : null,
+
+      // Hỗ trợ backward compatibility (nếu data cũ lưu String, data mới lưu List)
+      answers: data['answers'] != null
+          ? List<String>.from(data['answers'])
+          : (data['correctAnswer'] != null
+                ? [data['correctAnswer']]
+                : []), // Fallback cho data cũ
+
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  // Convert từ Model lên Firebase
+  // --- 2. TO JSON (App -> Firebase) ---
   Map<String, dynamic> toJson() {
     return {
       'setId': setId,
       'type': type.name,
       'content': content,
+      'timeLimit': timeLimit,
+      'isRandom': isRandom,
       if (options != null) 'options': options,
-      'correctAnswer': correctAnswer,
-      if (correctOrder != null) 'correctOrder': correctOrder,
+      'answers': answers, // Luôn lưu dưới dạng List
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
-  
-  // CopyWith để dùng cho chức năng Sửa
+
+  // --- 3. COPY WITH (Cho Edit State) ---
   QuestionModel copyWith({
     String? id,
     String? setId,
     QuestionType? type,
     String? content,
+    int? timeLimit,
+    bool? isRandom,
     List<String>? options,
-    String? correctAnswer,
-    List<String>? correctOrder,
+    List<String>? answers,
   }) {
     return QuestionModel(
       id: id ?? this.id,
       setId: setId ?? this.setId,
       type: type ?? this.type,
       content: content ?? this.content,
+      timeLimit: timeLimit ?? this.timeLimit,
+      isRandom: isRandom ?? this.isRandom,
       options: options ?? this.options,
-      correctAnswer: correctAnswer ?? this.correctAnswer,
-      correctOrder: correctOrder ?? this.correctOrder,
-      createdAt: this.createdAt,
-    );
-  }
-
-  // Map serialization for consistency with other models
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'setId': setId,
-        'type': type.name,
-        'content': content,
-        if (options != null) 'options': options,
-        'correctAnswer': correctAnswer,
-        if (correctOrder != null) 'correctOrder': correctOrder,
-        'createdAt': createdAt?.toIso8601String() ?? '',
-      };
-
-  factory QuestionModel.fromMap(Map<String, dynamic> map) {
-    return QuestionModel(
-      id: map['id'] ?? '',
-      setId: map['setId'] ?? '',
-      type: QuestionType.values.firstWhere(
-        (e) => e.name == (map['type'] ?? 'multipleChoice'),
-        orElse: () => QuestionType.multipleChoice,
-      ),
-      content: map['content'] ?? '',
-      options: map['options'] != null ? List<String>.from(map['options']) : null,
-      correctAnswer: map['correctAnswer'] ?? '',
-      correctOrder: map['correctOrder'] != null ? List<String>.from(map['correctOrder']) : null,
-      createdAt: map['createdAt'] != null && (map['createdAt'] as String).isNotEmpty
-          ? DateTime.tryParse(map['createdAt'])
-          : null,
+      answers: answers ?? this.answers,
+      createdAt: createdAt,
     );
   }
 }

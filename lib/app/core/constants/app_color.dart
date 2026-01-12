@@ -8,4 +8,6 @@ class AppColor {
   static const Color pink = Color(0xFFE8BDDC);
   static const Color blue = Color(0xFFD6E5FA);
   static const Color green = Color(0xFF88D8B0);
+  static const Color trueBlue = Color(0xFF0074D9); // Xanh dương đậm
+  static const Color falseRed = Color(0xFFFF4136); // Đỏ tươi
 }

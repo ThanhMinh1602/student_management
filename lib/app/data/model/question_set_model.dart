@@ -31,11 +31,11 @@ class QuestionSetModel {
 
   // Provide map serialization for local use
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'questionCount': questionCount,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'questionCount': questionCount,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   factory QuestionSetModel.fromMap(Map<String, dynamic> map) {
     return QuestionSetModel(
