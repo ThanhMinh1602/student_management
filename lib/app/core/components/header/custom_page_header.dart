@@ -1,3 +1,4 @@
+import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:flutter/material.dart';
 
 class CustomPageHeader extends StatelessWidget {
@@ -17,7 +18,7 @@ class CustomPageHeader extends StatelessWidget {
     this.buttonLabel,
     this.onButtonPressed,
     this.buttonIcon = Icons.add, // Icon mặc định
-    this.buttonColor = const Color(0xFF88D8B0), // Màu mặc định theo mẫu cũ
+    this.buttonColor = AppColor.green, // Màu mặc định theo mẫu cũ
     this.textColor = Colors.white,
     this.extraWidget,
   });

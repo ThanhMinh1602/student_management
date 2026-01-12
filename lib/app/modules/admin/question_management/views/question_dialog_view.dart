@@ -7,6 +7,7 @@ import 'package:blooket/app/modules/admin/question_management/widgets/answer_for
 import 'package:blooket/app/modules/admin/question_management/widgets/answer_form/answer_typing.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/answer_form/answer_unknown.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/bordered_stat_widget.dart';
+import 'package:blooket/app/modules/admin/question_management/widgets/time_limit_dialog_content.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/data/model/question_model.dart';
@@ -30,6 +31,8 @@ class QuestionDialogView extends StatefulWidget {
 class _QuestionDialogViewState extends State<QuestionDialogView> {
   late QuestionType selectedType;
   final contentCtrl = TextEditingController();
+  int timeLimit = 30;
+  bool isRandom = false;
 
   @override
   void initState() {
@@ -70,7 +73,7 @@ class _QuestionDialogViewState extends State<QuestionDialogView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildDialogHeaderControl(),
-              _buildInputQuestion(),
+              if (selectedType != QuestionType.rearrange) _buildInputQuestion(),
               _getAnswerFromType(),
               SizedBox(height: 100),
             ],
@@ -106,33 +109,43 @@ class _QuestionDialogViewState extends State<QuestionDialogView> {
           children: [
             BorderedStatWidget(
               title: 'Time\nlimit',
-              value: '30s',
+              value: '${timeLimit}s',
               icon: Icons.access_time,
-            ),
-            GestureDetector(
-              onTap: () {
-                Get.dialog(
-                  Center(
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      color: Colors.white,
-                    ),
-                  ),
+              onTap: () async {
+                final newTimeLimit = await showTimeLimitDialog(
+                  defaultValue: timeLimit,
                 );
+                setState(() {
+                  timeLimit = newTimeLimit;
+                });
               },
-              child: BorderedStatWidget(
-                title: 'Random\nOrder',
-                value: 'V',
-                icon: Icons.note_alt_outlined,
+            ),
+            BorderedStatWidget(
+              title: 'Random\nOrder',
+              icon: Icons.note_alt_outlined,
+              trailing: Checkbox(
+                activeColor: AppColor.white,
+                checkColor: AppColor.pink,
+                side: BorderSide(color: AppColor.white),
+                value: isRandom,
+                onChanged: (val) {
+                  setState(() {
+                    isRandom = val ?? false;
+                  });
+                },
               ),
             ),
             _buildQuestionTypeSelector(),
             Spacer(),
-            BorderedStatWidget(title: 'Cancel', icon: Icons.note_alt_outlined),
+            BorderedStatWidget(
+              title: 'Cancel',
+              icon: Icons.note_alt_outlined,
+              onTap: () => Get.back(),
+            ),
             BorderedStatWidget(
               title: 'Save',
               icon: Icons.roller_shades_closed_sharp,
+              onTap: () {},
             ),
           ],
         ),

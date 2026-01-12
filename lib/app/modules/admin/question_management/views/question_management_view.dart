@@ -8,7 +8,7 @@ import 'package:blooket/app/modules/admin/question_management/controller/questio
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
 import 'package:blooket/app/data/model/assignment_model.dart';
-import 'package:blooket/app/modules/admin/question_management/widgets/question_set_card.dart'; // Nhớ import file widget mới
+import 'package:blooket/app/modules/admin/question_management/widgets/question_set_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -19,7 +19,7 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFDCD6F7),
-      appBar: AppHeader(), // Giả sử bạn có widget này
+      appBar: AppHeader(),
       body: Row(
         children: [
           Expanded(
@@ -50,9 +50,7 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
 
                   const SizedBox(height: 40),
 
-                  // === PHẦN SỬA ĐỔI: Dùng GridView ===
                   Expanded(
-                    // BẮT BUỘC PHẢI CÓ Expanded để GridView cuộn được trong Column
                     child: Obx(() {
                       if (controller.questionSets.isEmpty) {
                         return const Center(child: Text("Chưa có bộ đề nào"));
@@ -62,15 +60,10 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                         itemCount: controller.questionSets.length,
                         gridDelegate:
                             const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent:
-                                  350, // Chiều rộng tối đa của 1 thẻ (sẽ tự chia cột)
-                              childAspectRatio:
-                                  3 /
-                                  2.2, // Tỉ lệ khung hình (Rộng / Cao) ~ 1.36
-                              crossAxisSpacing:
-                                  30, // Khoảng cách ngang giữa các thẻ
-                              mainAxisSpacing:
-                                  30, // Khoảng cách dọc giữa các thẻ
+                              maxCrossAxisExtent: 350,
+                              childAspectRatio: 3 / 2.2,
+                              crossAxisSpacing: 30,
+                              mainAxisSpacing: 30,
                             ),
                         itemBuilder: (context, index) {
                           final item = controller.questionSets[index];
@@ -78,7 +71,7 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                             name: item.name,
                             questionCount: item.questionCount,
                             createdAt: item.createdAt,
-                            // --- Logic giữ nguyên ---
+
                             onAssign: () async {
                               if (controller.classList.isEmpty) {
                                 controller.showWarning(

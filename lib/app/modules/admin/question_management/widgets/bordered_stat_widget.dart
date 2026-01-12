@@ -7,6 +7,7 @@ class BorderedStatWidget extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   const BorderedStatWidget({
     super.key,
@@ -15,6 +16,7 @@ class BorderedStatWidget extends StatelessWidget {
     this.icon = Icons.access_time,
     this.color = AppColor.white,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -43,24 +45,22 @@ class BorderedStatWidget extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
+              if (trailing != null) ...[const SizedBox(width: 12), trailing!],
               if (value != null) ...[
                 const SizedBox(width: 12),
 
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 20.0,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   decoration: BoxDecoration(
                     color: Colors.transparent,
-                    border: Border.all(color: color, width: 3.0),
-                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(color: color, width: 2.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     value!,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: color,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

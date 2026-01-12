@@ -62,6 +62,7 @@ class QuestionManagementDetailView
           buttonLabel: 'Thêm câu hỏi mới',
           onButtonPressed: () {
             Get.dialog(
+              barrierDismissible: false,
               QuestionDialogView(setId: '', onSave: (QuestionModel p1) {}),
             );
           },

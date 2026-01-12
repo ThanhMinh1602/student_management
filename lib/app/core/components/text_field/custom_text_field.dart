@@ -8,15 +8,15 @@ class CustomTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
   final Widget? suffixIcon; // Dùng cho các icon khác (nếu không phải password)
-  final bool isPassword;    // Thêm cờ này để xác định là ô mật khẩu
-  final TextInputAction ? textInputAction;
+  final bool isPassword; // Thêm cờ này để xác định là ô mật khẩu
+  final TextInputAction? textInputAction;
   final void Function(String)? onSubmitted;
-
+  final bool autofocus;
 
   const CustomTextField({
     super.key,
     required this.labelText,
-     this.prefixIcon,
+    this.prefixIcon,
     this.controller,
     this.validator,
     this.keyboardType = TextInputType.text,
@@ -24,6 +24,7 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false, // Mặc định là false (nhập văn bản thường)
     this.textInputAction,
     this.onSubmitted,
+    this.autofocus = false,
   });
 
   @override
@@ -59,19 +60,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
       validator: widget.validator,
       textInputAction: widget.textInputAction,
       onFieldSubmitted: widget.onSubmitted,
-      
+      autofocus: widget.autofocus,
       // Sử dụng biến state nội bộ để ẩn hiện
-      obscureText: _obscureText, 
-      
+      obscureText: _obscureText,
+
       keyboardType: widget.keyboardType,
       decoration: InputDecoration(
         labelText: widget.labelText,
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: widget.prefixIcon != null ? Icon(
-          widget.prefixIcon,
-          color: AppColors.primary,
-        ) : null,
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(widget.prefixIcon, color: AppColors.primary)
+            : null,
 
         // LOGIC QUAN TRỌNG Ở ĐÂY:
         // Nếu là password -> Hiện nút con mắt để toggle
@@ -96,7 +96,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         enabledBorder: outlineInputBorder,
         focusedBorder: focusedBorder,
         labelStyle: TextStyle(color: Colors.grey[600]),
-  floatingLabelStyle: const TextStyle(color: AppColors.primary),
+        floatingLabelStyle: const TextStyle(color: AppColors.primary),
       ),
     );
   }
