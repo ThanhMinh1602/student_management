@@ -4,19 +4,19 @@ import 'package:blooket/app/data/model/request/assign_student_request.dart';
 import 'package:blooket/app/data/model/request/create_student_request.dart';
 import 'package:dio/dio.dart';
 
-class StudentService {
+class userervice {
   final ApiClient _apiClient;
 
-  StudentService(this._apiClient);
+  userervice(this._apiClient);
 
-  Future<Response> getAllStudents({
+  Future<Response> getAlluser({
     String? classId,
     int page = 1,
     int limit = 10,
   }) async {
     return await _apiClient.get(
-      ApiEndpoints.students,
-      queryParameters: {
+      ApiEndpoints.user,
+      query: {
         if (classId != null) "classId": classId,
         "page": page,
         "limit": limit,
@@ -25,7 +25,7 @@ class StudentService {
   }
 
   Future<Response> createStudent(CreateStudentRequest request) async {
-    return await _apiClient.post(ApiEndpoints.students, data: request.toJson());
+    return await _apiClient.post(ApiEndpoints.user, data: request.toJson());
   }
 
   Future<Response> assignToClass(
@@ -43,7 +43,7 @@ class StudentService {
   }
 
   Future<Response> toggleStatus(String id) async {
-    return await _apiClient.put(ApiEndpoints.toggleStudentStatus(id));
+    return await _apiClient.put(ApiEndpoints.toggleusertatus(id));
   }
 
   Future<Response> resetPassword(String id) async {

@@ -6,9 +6,8 @@ class ClassManagementDetailBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<ClassManagementDetailController>(
       () => ClassManagementDetailController(
-        Get.find()// Lấy StudentService đã được đăng ký trong InitialBinding
-        
-      )
+        Get.find(), // Lấy userervice đã được đăng ký trong InitialBinding
+      ),
     );
   }
 }

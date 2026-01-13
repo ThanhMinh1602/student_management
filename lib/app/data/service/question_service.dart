@@ -11,7 +11,7 @@ class QuestionService {
   Future<Response> getAllQuestions({String? setId}) async {
     return await _apiClient.get(
       ApiEndpoints.questions,
-      queryParameters: setId != null ? {"setId": setId} : null,
+      query: setId != null ? {"setId": setId} : null,
     );
   }
 

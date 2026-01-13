@@ -21,15 +21,17 @@ class DashboardView extends StatelessWidget {
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Obx(() {
           final user = authController.currentUser.value;
-          final name = user?.fullName ?? 'Admin';
+          final name = 'Admin';
           final avatar = null; // nếu có field avatar trong model thì truyền vào
           return DashboardAppBar(
             userName: name,
             avatarUrl: avatar,
             onAvatarTap: () {
-              AppDialogs.showLogoutConfirm(onConfirm: () {
-                authController.logout();
-              });
+              AppDialogs.showLogoutConfirm(
+                onConfirm: () {
+                  authController.logout();
+                },
+              );
             },
           );
         }),
@@ -66,7 +68,7 @@ class DashboardView extends StatelessWidget {
                 children: [
                   Obx(() {
                     final user = authController.currentUser.value;
-                    final name = user?.fullName ?? 'Admin';
+                    final name = 'Admin';
                     return Text(
                       'Chào mừng trở lại, $name! 👋',
                       style: AppTextStyles.bannerTitle,
@@ -75,7 +77,10 @@ class DashboardView extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Hôm nay bạn muốn quản lý lớp học nào?',
-                    style: AppTextStyles.bodyText.copyWith(color: Colors.white70, fontSize: 16),
+                    style: AppTextStyles.bodyText.copyWith(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -85,7 +90,11 @@ class DashboardView extends StatelessWidget {
             // Main actions header
             Text(
               'Chức năng chính',
-              style: AppTextStyles.bodyText.copyWith(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w700),
+              style: AppTextStyles.bodyText.copyWith(
+                color: Colors.black87,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 16),
             Wrap(

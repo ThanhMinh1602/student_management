@@ -11,7 +11,7 @@ class ClassService {
   Future<Response> getAllClasses({int page = 1, int limit = 10}) async {
     return await _apiClient.get(
       ApiEndpoints.classes,
-      queryParameters: {"page": page, "limit": limit},
+      query: {"page": page, "limit": limit},
     );
   }
 

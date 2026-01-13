@@ -16,8 +16,8 @@ class InitialBinding extends Bindings {
       () => ClassService(Get.find<ApiClient>()),
       fenix: true,
     );
-    Get.lazyPut<StudentService>(
-      () => StudentService(Get.find<ApiClient>()),
+    Get.lazyPut<userervice>(
+      () => userervice(Get.find<ApiClient>()),
       fenix: true,
     );
     Get.lazyPut<QuestionService>(

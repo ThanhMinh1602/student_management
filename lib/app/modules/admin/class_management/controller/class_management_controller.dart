@@ -13,8 +13,8 @@ class ClassManagementController extends BaseController {
   // Dependency Injection thông qua constructor hoặc Get.find() đều được
   // Ở đây mình khởi tạo trực tiếp cho đơn giản, hoặc bạn có thể inject qua Binding
   final ClassService _classService;
-  final StudentService _studentService;
-  ClassManagementController(this._classService, this._studentService);
+  final userervice _userervice;
+  ClassManagementController(this._classService, this._userervice);
 
   final classList = <ClassModel>[].obs;
 
@@ -22,7 +22,7 @@ class ClassManagementController extends BaseController {
   void onInit() {
     super.onInit();
     // Tự động lắng nghe dữ liệu
-    classList.bindStream(_classService.getClassesStream());
+    // classList.bindStream(_classService.getClassesStream());
   }
 
   // --- NAVIGATION ---
@@ -37,14 +37,14 @@ class ClassManagementController extends BaseController {
     required String schedule,
   }) async {
     showLoading();
-    bool success = await _classService.addClass(
-      className: className,
-      subject: subject,
-      schedule: schedule,
-    );
-    hideLoading();
-    if (success) showSuccess("Tạo lớp thành công");
-    return success;
+    // bool success = await _classService.addClass(
+    //   className: className,
+    //   subject: subject,
+    //   schedule: schedule,
+    // );
+    // hideLoading();
+    // if (success) showSuccess("Tạo lớp thành công");
+    return true;
   }
 
   Future<bool> updateClass({
@@ -54,19 +54,20 @@ class ClassManagementController extends BaseController {
     required String schedule,
   }) async {
     showLoading();
-    bool success = await _classService.updateClass(
-      id: id,
-      className: className,
-      subject: subject,
-      schedule: schedule,
-    );
+    // bool success = await _classService.updateClass(
+    //   id: id,
+    //   className: className,
+    //   subject: subject,
+    //   schedule: schedule,
+    // );
     hideLoading();
-    if (success) showSuccess("Cập nhật thành công");
-    return success;
+    // if (success) showSuccess("Cập nhật thành công");
+    return true;
   }
 
   Stream<int> getClassStudentCount(String classId) {
-    return _studentService.getStudentCountByClassStream(classId);
+    // return _userervice.getStudentCountByClassStream(classId);
+    return Stream.value(0);
   }
 
   // --- XÓA LỚP (logic only, no UI) ---
@@ -75,7 +76,7 @@ class ClassManagementController extends BaseController {
     // BaseController helpers. The confirmation dialog must be shown
     // by the view that calls this method.
     showLoading(); // 1. Hiện loading
-    bool success = await _classService.deleteClass(id);
+    bool success = true;
     hideLoading(); // 2. Tắt loading
 
     if (success) {
