@@ -17,8 +17,6 @@ class ClassManagementController extends BaseController {
   ClassManagementController(this._classService, this._studentService);
 
   final classList = <ClassModel>[].obs;
-  
-  
 
   @override
   void onInit() {
@@ -29,9 +27,7 @@ class ClassManagementController extends BaseController {
 
   // --- NAVIGATION ---
   void enterClass(String id) {
-    Get.toNamed(
-      '${Get.currentRoute}/$id'
-    );
+    Get.toNamed('${Get.currentRoute}/$id');
   }
 
   // --- PUBLIC ACTIONS (logic-only) ---
@@ -68,9 +64,11 @@ class ClassManagementController extends BaseController {
     if (success) showSuccess("Cập nhật thành công");
     return success;
   }
-Stream<int> getClassStudentCount(String classId) {
+
+  Stream<int> getClassStudentCount(String classId) {
     return _studentService.getStudentCountByClassStream(classId);
   }
+
   // --- XÓA LỚP (logic only, no UI) ---
   Future<void> deleteClass(String id) async {
     // Controller only performs the deletion and reports results via

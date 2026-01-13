@@ -1,37 +1,23 @@
-import 'package:blooket/app/data/model/student_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:blooket/app/data/api/api_client.dart';
+import 'package:blooket/app/data/api/api_endpoints.dart';
+import 'package:blooket/app/data/model/request/register_request.dart';
+import 'package:blooket/app/data/model/request/login_request.dart';
+import 'package:dio/dio.dart';
 
 class AuthService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ApiClient _apiClient;
 
-  // Hàm đăng nhập
-  Future<StudentModel?> login(String username, String password) async {
-    try {
-      // 1. Tìm user theo username trong collection 'students' (hoặc 'users')
-      final QuerySnapshot result = await _firestore
-          .collection('students') 
-          .where('username', isEqualTo: username)
-          .limit(1)
-          .get();
+  AuthService(this._apiClient);
 
-      if (result.docs.isEmpty) {
-        return null; // Không tìm thấy user
-      }
+  Future<Response> register(RegisterRequest request) async {
+    return await _apiClient.post(ApiEndpoints.register, data: request.toJson());
+  }
 
-      // 2. Lấy dữ liệu user
-      final userDoc = result.docs.first;
-      final userModel = StudentModel.fromSnapshot(userDoc);
+  Future<Response> login(LoginRequest request) async {
+    return await _apiClient.post(ApiEndpoints.login, data: request.toJson());
+  }
 
-      // 3. Kiểm tra mật khẩu (So sánh string thông thường)
-      // Lưu ý: Dự án thực tế nên mã hóa mật khẩu (bcrypt/sha256)
-      if (userModel.password == password) {
-        return userModel;
-      } else {
-        return null; // Sai mật khẩu
-      }
-    } catch (e) {
-      print("Login Error: $e");
-      throw Exception("Lỗi kết nối cơ sở dữ liệu");
-    }
+  Future<Response> getCurrentUser() async {
+    return await _apiClient.get(ApiEndpoints.me);
   }
 }

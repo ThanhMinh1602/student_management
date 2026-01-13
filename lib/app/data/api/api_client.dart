@@ -83,6 +83,23 @@ class ApiClient {
     }
   }
 
+  // Thêm vào trong class ApiClient
+  Future<Response> put(String path, {dynamic data}) async {
+    try {
+      return await _dio.put(path, data: data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Response> delete(String path) async {
+    try {
+      return await _dio.delete(path);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Xử lý lỗi tập trung
   String _handleError(DioException error) {
     String errorDescription = "";

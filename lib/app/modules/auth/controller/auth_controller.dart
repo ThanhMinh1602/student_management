@@ -1,4 +1,5 @@
 import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/data/model/request/login_request.dart';
 import 'package:blooket/app/data/model/student_model.dart';
 import 'package:blooket/app/data/service/auth_service.dart';
 import 'package:blooket/app/routes/app_routes.dart';
@@ -37,28 +38,29 @@ class AuthController extends BaseController {
   bool get isLoggedIn => currentUser.value != null;
 
   Future<void> login(String username, String password) async {
-    // 1. Trim dữ liệu đầu vào để tránh lỗi khoảng trắng thừa
-    final cleanUsername = username.trim();
+    // 1. Trim dữ liệu đầu vào
+    final email = username.trim();
     final cleanPassword = password.trim();
 
-    if (cleanUsername.isEmpty || cleanPassword.isEmpty) {
-      showWarning('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');
+    if (email.isEmpty || cleanPassword.isEmpty) {
+      showWarning('Vui lòng nhập đầy đủ email và mật khẩu');
       return;
     }
 
     try {
       showLoading();
 
-      // 2. Gọi API
-      final user = await _authService.login(cleanUsername, cleanPassword);
+      // Sử dụng LoginRequest model đã tạo
+      final loginRequest = LoginRequest(email: email, password: cleanPassword);
 
-      // Lưu ý: Không hideLoading ở đây nữa, để finally xử lý hoặc hide trước khi navigate
+      // 2. Gọi API thông qua AuthService
+      // Chỉnh sửa: truyền loginRequest thay vì 2 biến rời rạc
+      final response = await _authService.login(loginRequest);
 
-      if (user == null) {
-        hideLoading(); // Cần hide ở đây vì return sớm
-        showError('Sai tên đăng nhập hoặc mật khẩu');
-        return;
-      }
+      // Giả sử API trả về data chứa user info và token
+      final userData = response.data;
+      final user = StudentModel.fromMap(userData['user']);
+      final token = userData['token'];
 
       if (!user.isActive) {
         hideLoading();
@@ -66,24 +68,18 @@ class AuthController extends BaseController {
         return;
       }
 
-      // --- SỬA LỖI: Đưa logic lưu user ra ngoài để áp dụng cho TẤT CẢ role ---
-
-      // 3. Cập nhật State quản lý User toàn cục
+      // 3. Cập nhật State & Lưu Session
       currentUser.value = user;
 
-      // 4. Lưu vào Local Storage (để tự động login lần sau)
-      try {
-        await _storage.write(_storageKey, user.toMap());
-      } catch (e) {
-        print('Lỗi lưu session: $e'); // Log để debug thay vì bỏ qua
-      }
+      await Future.wait([
+        _storage.write(_storageKey, user.toMap()),
+        _storage.write('token', token), // Lưu token để Interceptor sử dụng
+      ]);
 
       showSuccess('Xin chào ${user.fullName}');
-
-      // Tắt loading trước khi chuyển trang để tránh memory leak hoặc glitch UI
       hideLoading();
 
-      // 5. Điều hướng dựa trên Role
+      // 4. Điều hướng dựa trên Role
       if (user.role == 'admin') {
         Get.offAllNamed(AppRoutes.DASHBOARD);
       } else {
@@ -91,7 +87,8 @@ class AuthController extends BaseController {
       }
     } catch (e) {
       hideLoading();
-      showError('Đã có lỗi xảy ra: $e');
+      // Tận dụng xử lý lỗi từ ApiClient
+      showError(e.toString());
     }
   }
 
