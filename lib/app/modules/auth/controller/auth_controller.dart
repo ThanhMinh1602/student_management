@@ -1,109 +1,137 @@
-import 'package:blooket/app/core/base/base_controller.dart';
-import 'package:blooket/app/data/model/student_model.dart';
-import 'package:blooket/app/data/service/auth_service.dart';
-import 'package:blooket/app/routes/app_routes.dart';
+import 'dart:async';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:blooket/app/core/base/base_controller.dart';
+import 'package:blooket/app/core/utils/logger.dart';
+import 'package:blooket/app/data/enum/user_role.dart';
+import 'package:blooket/app/data/model/request/login_request.dart';
+import 'package:blooket/app/data/model/response/api_response.dart';
+import 'package:blooket/app/data/model/response/auth_response_model.dart';
+import 'package:blooket/app/data/model/user_model.dart';
+import 'package:blooket/app/data/service/auth_service.dart';
+import 'package:blooket/app/data/service/storage_service.dart';
+import 'package:blooket/app/routes/app_routes.dart';
 
 class AuthController extends BaseController {
   final AuthService _authService;
+  final StorageService _storageService;
 
-  // Lưu user hiện tại (null nếu chưa đăng nhập)
-  final Rxn<StudentModel> currentUser = Rxn<StudentModel>();
+  // Rxn cho phép giá trị null khi chưa đăng nhập
+  final Rxn<UserModel> currentUser = Rxn<UserModel>();
 
-  AuthController(this._authService); // Khởi tạo Service
-
-  final GetStorage _storage = GetStorage();
-
-  static const String _storageKey = 'currentUser';
+  AuthController(this._authService, this._storageService);
 
   @override
   void onInit() {
     super.onInit();
-    // Restore session if any
-    final data = _storage.read(_storageKey);
-    if (data != null && data is Map<String, dynamic>) {
-      try {
-        currentUser.value = StudentModel.fromMap(
-          Map<String, dynamic>.from(data),
-        );
-      } catch (_) {
-        // ignore: avoid_print
-        print('Failed to restore user session');
+    _restoreSession();
+  }
+
+  // Kiểm tra trạng thái đăng nhập
+  bool get isLoggedIn => currentUser.value != null;
+
+  // Khôi phục phiên làm việc từ Storage
+  void _restoreSession() {
+    try {
+      final user = _storageService.getUser();
+      if (user != null) {
+        currentUser.value = user;
+        logger.i("Session restored for: ${user.name}");
       }
+    } catch (e) {
+      logger.e("Failed to restore session: $e");
     }
   }
 
-  bool get isLoggedIn => currentUser.value != null;
-
+  // Logic Đăng nhập
   Future<void> login(String username, String password) async {
-    // 1. Trim dữ liệu đầu vào để tránh lỗi khoảng trắng thừa
     final cleanUsername = username.trim();
     final cleanPassword = password.trim();
 
     if (cleanUsername.isEmpty || cleanPassword.isEmpty) {
-      showWarning('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');
+      showWarning('Vui lòng nhập đầy đủ tài khoản và mật khẩu');
       return;
     }
 
     try {
       showLoading();
 
-      // 2. Gọi API
-      final user = await _authService.login(cleanUsername, cleanPassword);
+      final loginRequest = LoginRequest(
+        username: cleanUsername,
+        password: cleanPassword,
+      );
 
-      // Lưu ý: Không hideLoading ở đây nữa, để finally xử lý hoặc hide trước khi navigate
+      // Gọi API login qua AuthService
+      final ApiResponse<AuthResponseModel> response = await _authService.login(
+        loginRequest,
+      );
 
-      if (user == null) {
-        hideLoading(); // Cần hide ở đây vì return sớm
-        showError('Sai tên đăng nhập hoặc mật khẩu');
-        return;
-      }
+      if (response.success && response.data != null) {
+        final authData = response.data!;
+        final user = authData.user;
 
-      if (!user.isActive) {
+        // Kiểm tra tài khoản hoạt động
+        if (user?.isActive == false) {
+          hideLoading();
+          showError('Tài khoản của bạn hiện đang bị khóa');
+          return;
+        }
+
+        // Cập nhật trạng thái ứng dụng
+        currentUser.value = user;
+
+        // Lưu thông tin vào StorageService cục bộ
+        await Future.wait([
+          if (user != null) _storageService.saveUser(user),
+          _storageService.saveTokens(
+            access: authData.accessToken ?? '',
+            refresh: authData.refreshToken ?? '',
+          ),
+        ]);
+
         hideLoading();
-        showError('Tài khoản của bạn đã bị khóa');
-        return;
-      }
+        showSuccess('Xin chào ${user?.name ?? 'bạn'}!');
 
-      // --- SỬA LỖI: Đưa logic lưu user ra ngoài để áp dụng cho TẤT CẢ role ---
-
-      // 3. Cập nhật State quản lý User toàn cục
-      currentUser.value = user;
-
-      // 4. Lưu vào Local Storage (để tự động login lần sau)
-      try {
-        await _storage.write(_storageKey, user.toMap());
-      } catch (e) {
-        print('Lỗi lưu session: $e'); // Log để debug thay vì bỏ qua
-      }
-
-      showSuccess('Xin chào ${user.fullName}');
-
-      // Tắt loading trước khi chuyển trang để tránh memory leak hoặc glitch UI
-      hideLoading();
-
-      // 5. Điều hướng dựa trên Role
-      if (user.role == 'admin') {
-        Get.offAllNamed(AppRoutes.QUESTION_MANAGEMENT);
+        // Điều hướng dựa trên Enum Role
+        _navigateByRole(user?.role);
       } else {
-        Get.offAllNamed(AppRoutes.EXERCISES);
+        hideLoading();
+        // Hiển thị lỗi từ MessageCodes của Backend
+        showError(response.message);
       }
     } catch (e) {
       hideLoading();
-      showError('Đã có lỗi xảy ra: $e');
+      logger.e("Login Error: $e");
+      showError(e.toString());
     }
   }
 
-  // Hàm đăng xuất: xóa user và quay về màn hình login
+  // Điều hướng dựa trên vai trò người dùng
+  void _navigateByRole(UserRole? role) {
+    switch (role) {
+      case UserRole.admin:
+      case UserRole.teacher:
+        Get.offAllNamed(AppRoutes.QUESTION_MANAGEMENT);
+        break;
+      case UserRole.student:
+      default:
+        Get.offAllNamed(AppRoutes.EXERCISES);
+        break;
+    }
+  }
+
+  // Đăng xuất
   Future<void> logout() async {
-    currentUser.value = null;
-    // Remove persisted session
     try {
-      _storage.remove(_storageKey);
-    } catch (_) {}
-    showInfo('Đã đăng xuất');
-    // Quay về login và xóa lịch sử route
-    Get.offAllNamed(AppRoutes.LOGIN);
+      showLoading();
+      currentUser.value = null;
+      await _storageService.clearSession();
+
+      hideLoading();
+      showInfo('Đã đăng xuất thành công');
+      Get.offAllNamed(AppRoutes.LOGIN);
+    } catch (e) {
+      hideLoading();
+      logger.e("Logout Error: $e");
+    }
   }
 }
