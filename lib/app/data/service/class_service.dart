@@ -1,4 +1,4 @@
-import 'package:blooket/app/data/model/class_model.dart';
+import 'package:blooket/app/data/model/old_model/class_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // Nhớ import file model của bạn
 // import 'package:blooket/app/data/model/class_model.dart';

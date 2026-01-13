@@ -2,14 +2,14 @@ import 'package:blooket/app/core/base/base_controller.dart';
 // Dialogs and QuestionDialog widget belong in Views; controller only exposes logic.
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:blooket/app/data/model/question_model.dart'; // Chứa Enum QuestionType
+import 'package:blooket/app/data/model/old_model/question_model.dart'; // Chứa Enum QuestionType
 import 'package:blooket/app/data/service/question_service.dart';
 
 class QuestionManagementDetailController extends BaseController {
   final QuestionService _service = QuestionService(); // Hoặc Get.find()
-  
+
   final questions = <QuestionModel>[].obs;
-  
+
   // ID và Tên bộ đề (lấy từ tham số truyền vào)
   late String setId;
   late String setName;
@@ -25,7 +25,7 @@ class QuestionManagementDetailController extends BaseController {
     // Lấy tham số từ URL hoặc Arguments
     // Ví dụ URL: /question-detail/:id?name=BoDe1
     setId = Get.parameters['id'] ?? '';
-    setName = Get.parameters['name'] ?? 'Chi tiết bộ đề'; 
+    setName = Get.parameters['name'] ?? 'Chi tiết bộ đề';
 
     if (setId.isNotEmpty) {
       questions.bindStream(_service.getQuestionsStream(setId));
@@ -33,7 +33,7 @@ class QuestionManagementDetailController extends BaseController {
   }
 
   // --- CRUD ACTION ---
-// --- DELETE QUESTION ---
+  // --- DELETE QUESTION ---
   Future<bool> deleteQuestion(String questionId) async {
     showLoading();
     bool success = await _service.deleteQuestion(questionId, setId);

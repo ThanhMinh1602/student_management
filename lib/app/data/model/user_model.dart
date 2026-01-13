@@ -54,7 +54,7 @@ class UserModel {
       'id': id,
       'name': name,
       'username': username,
-      'role': role,
+      'role': role.value,
       'isActive': isActive,
       'classId': classId,
       'avgScore': avgScore,

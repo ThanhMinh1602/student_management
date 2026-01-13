@@ -2,6 +2,7 @@ import 'package:blooket/app/config/network/api_client.dart';
 import 'package:blooket/app/data/service/auth_service.dart';
 import 'package:blooket/app/data/service/class_service.dart';
 import 'package:blooket/app/data/service/question_service.dart';
+import 'package:blooket/app/data/service/set_service.dart';
 import 'package:blooket/app/data/service/storage_service.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 import 'package:get/get.dart';
@@ -13,6 +14,7 @@ class InitialBinding extends Bindings {
     // Khởi tạo các Service tại đây
     Get.lazyPut<StorageService>(() => StorageService(), fenix: true);
     Get.lazyPut<ClassService>(() => ClassService(), fenix: true);
+    Get.lazyPut<SetService>(() => SetService(Get.find()), fenix: true);
     Get.lazyPut<StudentService>(() => StudentService(), fenix: true);
     Get.lazyPut<QuestionService>(() => QuestionService(), fenix: true);
     Get.lazyPut<AuthService>(() => AuthService(Get.find()), fenix: true);

@@ -1,7 +1,7 @@
-import 'package:blooket/app/data/model/assignment_model.dart';
-import 'package:blooket/app/data/model/question_model.dart';
+import 'package:blooket/app/data/model/old_model/assignment_model.dart';
+import 'package:blooket/app/data/model/old_model/question_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:blooket/app/data/model/question_set_model.dart';
+import 'package:blooket/app/data/model/old_model/question_set_model.dart';
 
 class QuestionService {
   final _firestore = FirebaseFirestore.instance;

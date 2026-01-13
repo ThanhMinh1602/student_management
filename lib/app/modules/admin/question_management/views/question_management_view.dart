@@ -7,7 +7,7 @@ import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:blooket/app/modules/admin/question_management/controller/question_management_controller.dart';
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
-import 'package:blooket/app/data/model/assignment_model.dart';
+import 'package:blooket/app/data/model/old_model/assignment_model.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/question_set_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -68,31 +68,36 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                         itemBuilder: (context, index) {
                           final item = controller.questionSets[index];
                           return QuestionSetCard(
-                            name: item.name,
-                            questionCount: item.questionCount,
-                            createdAt: item.createdAt,
+                            // name: String?, questionCount: int?, createdAt: DateTime? từ SetModel
+                            name: item.name ?? "Không có tên",
+                            questionCount: item.questionCount ?? 0,
+                            createdAt: item.createdAt ?? DateTime.now(),
 
                             onAssign: () async {
+                              // classList.obs sẽ tự động cập nhật từ API thông qua fetchData() của controller
                               if (controller.classList.isEmpty) {
                                 controller.showWarning(
                                   "Bạn cần tạo Lớp học trước khi giao bài!",
                                 );
                                 return;
                               }
+
                               final r = await UiDialogs.showAssignDialog(
                                 classes: controller.classList,
                                 actionColor: controller.actionColor,
                                 title: 'GIAO BÀI TẬP',
-                                questionSetName: item.name,
+                                questionSetName: item.name ?? "",
                               );
+
                               if (r != null) {
                                 final cls = r['class'];
                                 final start = r['start'] as DateTime;
                                 final end = r['end'] as DateTime;
+
                                 final assignment = AssignmentModel(
                                   id: '',
                                   questionSetId: item.id,
-                                  questionSetName: item.name,
+                                  questionSetName: item.name ?? "",
                                   classId: cls.id,
                                   className: cls.className,
                                   startDate: start,
@@ -103,7 +108,7 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                               }
                             },
                             onEdit: () async {
-                              controller.openDetail(item.id, item.name);
+                              // controller.openDetail(item.id, item.name);
                             },
                             onDelete: () {
                               AppDialogs.showConfirm(
@@ -127,8 +132,8 @@ class QuestionManagementView extends GetView<QuestionManagementController> {
                                 },
                               );
                             },
-                            onDetail: () =>
-                                controller.openDetail(item.id, item.name),
+                            onDetail: () {},
+                            // controller.openDetail(item.id, item.name),
                           );
                         },
                       );

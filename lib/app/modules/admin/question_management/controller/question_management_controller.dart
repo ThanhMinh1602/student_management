@@ -1,88 +1,120 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:blooket/app/data/service/class_service.dart';
+import 'package:blooket/app/data/model/request/create_set_request.dart';
+import 'package:blooket/app/data/model/set_model.dart';
+import 'package:blooket/app/data/service/class_service.dart'; // Đảm bảo ClassService cũng dùng API
+import 'package:blooket/app/data/service/set_service.dart'; // Sử dụng SetService mới
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blooket/app/core/base/base_controller.dart';
-import 'package:blooket/app/data/model/assignment_model.dart';
-import 'package:blooket/app/data/model/class_model.dart';
-import 'package:blooket/app/data/model/question_set_model.dart';
-import 'package:blooket/app/data/service/question_service.dart';
+import 'package:blooket/app/data/model/old_model/assignment_model.dart';
+import 'package:blooket/app/data/model/old_model/class_model.dart';
 
 class QuestionManagementController extends BaseController {
-  final QuestionService _questionService; // Hoặc Get.find() nếu đã binding
-  final ClassService _classService;
-  QuestionManagementController(this._questionService, this._classService);
-  final questionSets = <QuestionSetModel>[].obs;
+  final SetService _setService;
+
+  QuestionManagementController(this._setService);
+
+  // Chuyển sang sử dụng SetModel mới
+  final questionSets = <SetModel>[].obs;
   final classList = <ClassModel>[].obs;
 
-  // Màu sắc chủ đạo của Module này
   final primaryColor = const Color(0xFF909CC2);
-  final actionColor = const Color(0xFFEDBBC6); // Màu hồng
+  final actionColor = const Color(0xFFEDBBC6);
 
   @override
   void onInit() {
     super.onInit();
-    questionSets.bindStream(_questionService.getQuestionSetsStream());
-    classList.bindStream(_classService.getClassesStream());
+    // Thay vì bindStream, chúng ta gọi API lấy dữ liệu lần đầu
+    fetchData();
+  }
+
+  // Hàm tải dữ liệu từ Server
+  Future<void> fetchData() async {
+    showLoading();
+    try {
+      // Gọi API lấy danh sách Sets
+      final response = await _setService.listSets();
+      if (response.success) {
+        questionSets.assignAll(response.data ?? []);
+      } else {
+        showError(response.message);
+      }
+
+      // Giả định ClassService cũng đã được chuyển sang API
+      // final classRes = await _classService.listClasses();
+      // if (classRes.success) classList.assignAll(classRes.data ?? []);
+    } catch (e) {
+      showError("Không thể tải dữ liệu");
+    } finally {
+      hideLoading();
+    }
   }
 
   // --- CÁC HÀM GỌI TỪ VIEW ---
 
-  // Views handle UI interactions; controller exposes logic APIs below.
   Future<bool> deleteSet(String id) async {
     showLoading();
-    bool success = await _questionService.deleteQuestionSet(id);
+    // Gọi API xóa theo ID
+    final response = await _setService.deleteSet(id);
     hideLoading();
 
-    if (success) {
+    if (response.success) {
       showSuccess("Đã xóa bộ đề");
+      questionSets.removeWhere(
+        (element) => element.id == id,
+      ); // Cập nhật UI cục bộ
+      return true;
     } else {
-      showError("Lỗi khi xóa bộ đề");
+      showError(response.message);
+      return false;
     }
-    return success;
   }
-  void openDetail(String id, String name) {
-    Get.toNamed(
-      '${Get.currentRoute}/$id?name=$name',
-    );
-  }
-  // UI moved to View; logic methods (createQuestionSet, updateQuestionSet, deleteSet,
-  // createAssignment) are used by views when user confirms an action.
 
-  // --- Logic-only helpers (called by Views) ---
+  void openDetail(String id, String name) {
+    Get.toNamed('${Get.currentRoute}/$id?name=$name');
+  }
+
   Future<bool> createQuestionSet(String name) async {
     showLoading();
-    bool success = await _questionService.createQuestionSet(name.trim());
+    // Sử dụng CreateSetRequest model
+    final request = CreateSetRequest(name: name.trim());
+    final response = await _setService.createSet(request);
     hideLoading();
-    if (success) {
+
+    if (response.success) {
       showSuccess("Đã tạo bộ đề mới");
+      if (response.data != null)
+        questionSets.insert(0, response.data!); // Thêm vào đầu danh sách
+      return true;
     } else {
-      showError("Có lỗi xảy ra, vui lòng thử lại");
+      showError(response.message);
+      return false;
     }
-    return success;
   }
 
   Future<bool> updateQuestionSet(String id, String name) async {
     showLoading();
-    bool success = await _questionService.updateQuestionSet(id, name.trim());
+    // Gọi API update
+    final response = await _setService.updateSet(id, name.trim());
     hideLoading();
-    if (success) {
+
+    if (response.success) {
       showSuccess("Đã cập nhật tên bộ đề");
+      // Cập nhật phần tử trong danh sách obs
+      int index = questionSets.indexWhere((s) => s.id == id);
+      if (index != -1 && response.data != null) {
+        questionSets[index] = response.data!;
+      }
+      return true;
     } else {
-      showError("Có lỗi xảy ra, vui lòng thử lại");
+      showError(response.message);
+      return false;
     }
-    return success;
   }
 
+  // Hàm này cần chuyển sang AssignmentService riêng khi bạn có Backend cho Assignment
   Future<bool> createAssignment(AssignmentModel assignment) async {
-    showLoading();
-    bool success = await _questionService.createAssignment(assignment);
-    hideLoading();
-    if (success) {
-      showSuccess("Đã giao bài thành công cho lớp ${assignment.className}");
-    } else {
-      showError("Lỗi hệ thống, vui lòng thử lại");
-    }
-    return success;
+    // Logic tương tự: Gọi service -> Kiểm tra success -> Thông báo
+    showWarning("Chức năng giao bài đang được đồng bộ Backend");
+    return false;
   }
 }

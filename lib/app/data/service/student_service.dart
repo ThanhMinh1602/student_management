@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:blooket/app/data/model/student_model.dart';
+import 'package:blooket/app/data/model/old_model/student_model.dart';
 
 class StudentService {
   final CollectionReference _studentRef = FirebaseFirestore.instance.collection(
@@ -68,14 +68,14 @@ class StudentService {
   Future<bool> addStudent({
     required String fullName,
     required String username,
-    String role = 'student', 
+    String role = 'student',
     String password = '123456',
   }) async {
     try {
       final check = await _studentRef
           .where('username', isEqualTo: username)
           .get();
-      
+
       if (check.docs.isNotEmpty) return false;
 
       await _studentRef.add({

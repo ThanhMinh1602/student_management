@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart';
 // UI/dialogs are shown by Views; controller exposes logic-only actions.
-import 'package:blooket/app/data/model/student_model.dart';
+import 'package:blooket/app/data/model/old_model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 
 class StudentManagementController extends BaseController {

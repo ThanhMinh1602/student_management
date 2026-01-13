@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 // Giả định các import có sẵn từ project của bạn
 import 'package:blooket/app/core/constants/app_color.dart';
 import 'package:blooket/app/data/enum/question_type.dart';
-import 'package:blooket/app/data/model/question_model.dart';
+import 'package:blooket/app/data/model/old_model/question_model.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/answer_form/answer_multi_chose.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/answer_form/answer_rearrange.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/answer_form/answer_true_false.dart';

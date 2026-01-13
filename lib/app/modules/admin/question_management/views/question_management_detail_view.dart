@@ -2,7 +2,7 @@ import 'dart:ui'; // Bắt buộc import để dùng ImageFilter
 import 'package:blooket/app/core/components/button/custom_icon_button.dart';
 import 'package:blooket/app/core/components/header/custom_page_header.dart';
 import 'package:blooket/app/core/constants/app_colors.dart';
-import 'package:blooket/app/data/model/question_model.dart';
+import 'package:blooket/app/data/model/old_model/question_model.dart';
 import 'package:blooket/app/modules/admin/question_management/views/question_dialog_view.dart';
 import 'package:blooket/app/modules/admin/question_management/widgets/up_down_controls.dart';
 import 'package:flutter/material.dart';

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 
 import 'package:blooket/app/core/base/base_controller.dart'; // Kế thừa BaseController để có loading/snackbar xịn
 // Controller must not import UI/dialog helpers; views handle confirmations.
-import 'package:blooket/app/data/model/student_model.dart';
+import 'package:blooket/app/data/model/old_model/student_model.dart';
 import 'package:blooket/app/data/service/student_service.dart';
 
 class ClassManagementDetailController extends BaseController {
@@ -28,7 +28,7 @@ class ClassManagementDetailController extends BaseController {
   void onInit() {
     super.onInit();
     // Lấy ID lớp được truyền từ màn hình trước
-    currentClassId = Get.parameters['id']??'';
+    currentClassId = Get.parameters['id'] ?? '';
 
     if (currentClassId.isNotEmpty) {
       // 1. Bind stream học viên trong lớp

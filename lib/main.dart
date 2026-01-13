@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart'; // 1. Import gói này
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
@@ -16,7 +15,7 @@ Future<void> main() async {
   } catch (e) {
     print("Lỗi load file .env: $e");
   }
-  await GetStorage.init();
+
   configLoading();
 
   runApp(const MyApp());

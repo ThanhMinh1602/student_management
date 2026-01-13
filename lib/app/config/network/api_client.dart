@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:blooket/app/config/remote_config.dart';
+import 'package:blooket/app/data/service/storage_service.dart'; // Import StorageService của bạn
 import 'package:dio/dio.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:get/get.dart' hide Response; // Dùng Get để tìm service
 import 'package:blooket/app/core/utils/logger.dart';
 
 class ApiClient {
   late Dio _dio;
-  final storage = GetStorage();
+  // Khởi tạo thông qua Get.find để dùng chung instance với AuthController
+  final StorageService _storageService = Get.find<StorageService>();
 
   ApiClient() {
     _dio = Dio(
@@ -21,8 +23,9 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // 1. Tự động đính kèm Access Token vào Header (trừ khi gọi refresh)
-          final token = storage.read('accessToken');
+          // 1. Sử dụng storageService để lấy Access Token
+          final token = _storageService.getAccessToken();
+
           if (token != null && !options.path.contains('/refresh')) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -38,16 +41,19 @@ class ApiClient {
           _logError(e);
 
           // 2. Xử lý Refresh Token tự động khi gặp lỗi 401
+          // Kiểm tra xem có Refresh Token trong StorageService không
+          final refreshToken = _storageService.getRefreshToken();
+
           if (e.response?.statusCode == 401 &&
-              storage.hasData('refreshToken') &&
+              refreshToken != null &&
               !e.requestOptions.path.contains('/refresh')) {
             final bool isRefreshed = await _handleRefreshToken();
 
             if (isRefreshed) {
-              // Retry request cũ với token mới
+              // Retry request cũ với access token mới vừa được lưu
               final options = e.requestOptions;
-              options.headers['Authorization'] =
-                  'Bearer ${storage.read('accessToken')}';
+              final newToken = _storageService.getAccessToken();
+              options.headers['Authorization'] = 'Bearer $newToken';
 
               final response = await _dio.fetch(options);
               return handler.resolve(response);
@@ -84,7 +90,7 @@ class ApiClient {
       final prettyJson = const JsonEncoder.withIndent(
         '  ',
       ).convert(response.data);
-      logger.v("Body:\n$prettyJson"); // logger.v để in JSON chi tiết
+      logger.v("Body:\n$prettyJson");
     } catch (_) {
       logger.v("Body: ${response.data}");
     }
@@ -108,8 +114,9 @@ class ApiClient {
 
   Future<bool> _handleRefreshToken() async {
     try {
-      final rt = storage.read('refreshToken');
-      // Sử dụng một instance Dio mới để tránh bị lặp vô hạn interceptor
+      final rt = _storageService.getRefreshToken();
+
+      // Sử dụng một instance Dio mới để tránh Interceptor lặp vô hạn
       final response = await Dio().post(
         "${RemoteConfig.baseUrl}/api/auth/refresh",
         data: {'refreshToken': rt},
@@ -117,18 +124,21 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final newAt = response.data['data']['accessToken'];
-        // Nếu BE trả về cả RT mới thì cập nhật luôn (Rotation)
         final newRt = response.data['data']['refreshToken'];
 
-        await storage.write('accessToken', newAt);
-        if (newRt != null) await storage.write('refreshToken', newRt);
+        // Sử dụng storageService để lưu token mới
+        await _storageService.saveTokens(
+          access: newAt,
+          refresh: newRt ?? rt!, // Nếu BE không trả RT mới thì giữ cái cũ
+        );
 
         logger.i("🔄 Token refreshed successfully");
         return true;
       }
     } catch (e) {
       logger.e("🔄 Refresh token failed, logging out...");
-      storage.erase(); // Xóa sạch và bắt đăng nhập lại
+      // Sử dụng storageService để xóa sạch phiên làm việc
+      await _storageService.clearSession();
     }
     return false;
   }

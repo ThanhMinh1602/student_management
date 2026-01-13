@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:blooket/app/core/utils/dialogs.dart';
 import 'package:blooket/app/core/utils/ui_dialogs.dart';
 import 'package:blooket/app/modules/admin/student_management/controllers/student_management_controller.dart';
-import 'package:blooket/app/data/model/student_model.dart';
+import 'package:blooket/app/data/model/old_model/student_model.dart';
 
 class StudentManagementView extends GetView<StudentManagementController> {
   const StudentManagementView({super.key});
